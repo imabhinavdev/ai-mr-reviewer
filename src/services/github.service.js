@@ -2,6 +2,73 @@ import { env } from '../config/env.js'
 
 const GITHUB_API = 'https://api.github.com'
 
+/** @type {{ login: string } | null} */
+let cachedBotUser = null
+
+function getAuthHeaders() {
+  const token = env.GITHUB_TOKEN
+  if (!token) throw new Error('GITHUB_TOKEN is not set')
+  return {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+}
+
+/**
+ * Get the authenticated bot user (cached).
+ * @returns {Promise<{ login: string }>}
+ */
+export async function getGitHubBotUser() {
+  if (cachedBotUser) return cachedBotUser
+  const res = await fetch(`${GITHUB_API}/user`, {
+    headers: getAuthHeaders(),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GitHub get user failed: ${res.status} ${text}`)
+  }
+  const user = await res.json()
+  cachedBotUser = { login: user.login }
+  return cachedBotUser
+}
+
+/**
+ * List all review comments on a pull request (paginated).
+ * @param {string} repoFullName - e.g. "owner/repo"
+ * @returns {Promise<Array<{ path: string, line: number, commit_id: string, user: { login: string } | null }>>}
+ */
+export async function listPullRequestReviewComments(repoFullName, pullNumber) {
+  const [owner, repo] = repoFullName.split('/')
+  if (!owner || !repo) throw new Error('Invalid repo full name: ' + repoFullName)
+
+  const all = []
+  let page = 1
+  const perPage = 100
+
+  while (true) {
+    const url = `${GITHUB_API}/repos/${owner}/${repo}/pulls/${pullNumber}/comments?per_page=${perPage}&page=${page}`
+    const res = await fetch(url, { headers: getAuthHeaders() })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`GitHub list PR comments failed: ${res.status} ${text}`)
+    }
+    const comments = await res.json()
+    if (comments.length === 0) break
+    all.push(...comments)
+    if (comments.length < perPage) break
+    page++
+  }
+
+  return all.map((c) => ({
+    path: c.path,
+    line: c.line ?? c.original_line ?? c.position,
+    commit_id: c.commit_id,
+    user: c.user,
+  }))
+}
+
 /**
  * Create a pull request review with body and line-level comments.
  * Uses line + side (RIGHT = new file) for comment placement.
@@ -44,12 +111,7 @@ export async function createPullRequestReview({
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(body),
   })
 

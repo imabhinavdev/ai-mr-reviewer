@@ -4,6 +4,7 @@ import { extractReviewableLines } from '../services/review/extractReviewableLine
 import { chunkReviewableLines } from '../services/review/chunkReviewableLines.js'
 import { reviewChunkWithAI } from '../services/review/reviewChunkWithAI.js'
 import { mergeReviewChunks } from '../services/review/mergeReviewChunks.js'
+import { getExistingReviewComments } from '../services/review/getExistingReviewComments.js'
 import { postReview } from '../services/review/postReview.js'
 import { detectProviderFromEvent } from '../lib/webhookProvider.js'
 import { logger } from '../config/logger.js'
@@ -68,15 +69,35 @@ export async function runReviewPRJob(event) {
       body: `**[${c.severity}]** ${c.body}`,
     }))
 
+    const existingKeys = await getExistingReviewComments(event)
+    const commentsToPost = commentsForGit.filter((c) => {
+      const key = `${c.file}:${c.line}`
+      return !existingKeys.has(key)
+    })
+
+    if (commentsToPost.length === 0) {
+      logger.info(
+        { provider, repoLabel, mrNumber, filtered: commentsForGit.length },
+        'No new findings; skipping post (all comments already exist)',
+      )
+      return
+    }
+
     await postReview({
       provider,
       event,
       reviewBody,
-      reviewComments: commentsForGit,
+      reviewComments: commentsToPost,
     })
 
     logger.info(
-      { provider, repoLabel, mrNumber, commentCount: commentsForGit.length },
+      {
+        provider,
+        repoLabel,
+        mrNumber,
+        commentCount: commentsToPost.length,
+        skipped: commentsForGit.length - commentsToPost.length,
+      },
       'Review posted',
     )
   } catch (err) {

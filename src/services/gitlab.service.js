@@ -27,6 +27,55 @@ function glFetch(path, options = {}) {
   })
 }
 
+/** @type {{ username: string } | null} */
+let cachedBotUser = null
+
+/**
+ * Get the authenticated bot user (cached).
+ * @returns {Promise<{ username: string }>}
+ */
+export async function getGitLabBotUser() {
+  if (cachedBotUser) return cachedBotUser
+  const res = await glFetch('/api/v4/user')
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GitLab get user failed: ${res.status} ${text}`)
+  }
+  const user = await res.json()
+  cachedBotUser = { username: user.username }
+  return cachedBotUser
+}
+
+/**
+ * List all discussions (and their notes) for a merge request (paginated).
+ * @param {string|number} projectId
+ * @param {number} iid
+ * @returns {Promise<Array<{ notes: Array<{ author: { username: string }, position?: { new_path: string, new_line: number, head_sha: string } }> }>>}
+ */
+export async function listMergeRequestDiscussions(projectId, iid) {
+  const encodedId = encodeURIComponent(projectId)
+  const all = []
+  let page = 1
+  const perPage = 100
+
+  while (true) {
+    const res = await glFetch(
+      `/api/v4/projects/${encodedId}/merge_requests/${iid}/discussions?per_page=${perPage}&page=${page}`,
+    )
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`GitLab list MR discussions failed: ${res.status} ${text}`)
+    }
+    const discussions = await res.json()
+    if (discussions.length === 0) break
+    all.push(...discussions)
+    if (discussions.length < perPage) break
+    page++
+  }
+
+  return all
+}
+
 /**
  * Fetch merge request to get diff_refs for positioning comments.
  * @param {string|number} projectId

@@ -1,4 +1,4 @@
-# Contributing to AI MR Reviewer
+# Contributing to Nirik
 
 Thank you for considering contributing. Please follow these guidelines.
 
@@ -29,4 +29,4 @@ This project adheres to the [Code of Conduct](CODE_OF_CONDUCT.md). By participat
 
 ## Questions
 
-Open a [GitHub issue](https://github.com/imabhinavdev/ai-mr-reviewer/issues) for bugs or feature requests.
+Open a [GitHub issue](https://github.com/imabhinavdev/nirik/issues) for bugs or feature requests.

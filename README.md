@@ -1,4 +1,4 @@
-# AI MR Reviewer
+# Nirik
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -71,8 +71,8 @@ You need to provide:
 1. **Clone and go into the project**
 
    ```bash
-   git clone https://github.com/imabhinavdev/ai-mr-reviewer.git
-   cd ai-mr-reviewer
+   git clone https://github.com/imabhinavdev/nirik.git
+   cd nirik
    ```
 
 2. **Copy the example env file and edit it**
@@ -110,8 +110,8 @@ You need to provide:
 1. **Install dependencies and copy env**
 
    ```bash
-   git clone https://github.com/imabhinavdev/ai-mr-reviewer.git
-   cd ai-mr-reviewer
+   git clone https://github.com/imabhinavdev/nirik.git
+   cd nirik
    pnpm install
    cp .env.example .env
    ```

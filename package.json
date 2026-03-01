@@ -1,5 +1,5 @@
 {
-  "name": "ai-mr-reviewer",
+  "name": "nirik",
   "version": "1.0.0",
   "description": "Automated PR reviews with AI (Gemini), GitHub webhooks, and Redis queue",
   "type": "module",
@@ -26,11 +26,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/imabhinavdev/ai-mr-reviewer.git"
+    "url": "https://github.com/imabhinavdev/nirik.git"
   },
-  "homepage": "https://github.com/imabhinavdev/ai-mr-reviewer#readme",
+  "homepage": "https://github.com/imabhinavdev/nirik#readme",
   "bugs": {
-    "url": "https://github.com/imabhinavdev/ai-mr-reviewer/issues"
+    "url": "https://github.com/imabhinavdev/nirik/issues"
   },
   "engines": {
     "node": ">=20"
