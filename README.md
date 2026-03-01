@@ -197,6 +197,7 @@ All configuration is via environment variables (e.g. in `.env`).
 | **Webhook security (recommended)**      |            |                                                                                                                                                                                            |
 | `GITHUB_WEBHOOK_SECRET`                 | No         | Secret you set in GitHub webhook settings. App verifies `X-Hub-Signature-256`. If set, requests without a valid signature are rejected.                                                    |
 | `GITLAB_WEBHOOK_TOKEN`                  | No         | Token you set in GitLab webhook settings. App verifies `X-Gitlab-Token`. If set, requests without the correct token are rejected.                                                          |
+| `METRICS_TOKEN`                         | Yes        | Token required for `/metrics` access. Send as `Authorization: Bearer <METRICS_TOKEN>`.                                                                                                     |
 | **Other**                               |            |                                                                                                                                                                                            |
 | `LOG_LEVEL`                             | No         | Log level: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, or `silent`.                                                                                                                |
 
@@ -208,7 +209,7 @@ When the server starts, it logs the URLs you need:
 
 - **Webhook URL** – Use this in GitHub or GitLab as the webhook “Payload URL”.
 - **Health** – `GET /` for a simple health check.
-- **Metrics** – `GET /metrics` for Prometheus.
+- **Metrics** – `GET /metrics` for Prometheus (requires `Authorization: Bearer <METRICS_TOKEN>`).
 
 To see the **correct public webhook URL** (e.g. when using a reverse proxy or a domain), set **`BASE_URL`** in your env:
 
@@ -283,7 +284,7 @@ The app can verify that webhook requests really come from GitHub or GitLab.
 | ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `GET`  | `/`                          | Health check. Returns JSON `{ success: true, message: "Hello World", requestId }`.                                                                                                                                                                                                                                                                                                                                                               |
 | `POST` | `/api/v1/webhooks/review-pr` | **Webhook** for GitHub (pull_request) or GitLab (merge_request). Only **opened** and **synchronize** (GitHub) or **open**, **reopen**, and **update** (GitLab) trigger a review; other actions return `200` with `accepted: false`. Returns `202` and `{ accepted: true, message: "Review started", provider }` when the job is enqueued. Returns `401` if verification is enabled and invalid; `400` if the payload is not a valid PR/MR event. |
-| `GET`  | `/metrics`                   | Prometheus-format metrics (request counts, review job counts/duration, etc.).                                                                                                                                                                                                                                                                                                                                                                    |
+| `GET`  | `/metrics`                   | Prometheus-format metrics. Requires `Authorization: Bearer <METRICS_TOKEN>`. Returns `401` for missing or invalid token.                                                                                                                                                                                                                                                                                                                         |
 
 ---
 
@@ -321,6 +322,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 - **“Invalid GitHub webhook signature” / “Invalid GitLab webhook token”**  
   The secret/token in your `.env` doesn’t match what you set in GitHub/GitLab. Copy the value from the webhook settings into `GITHUB_WEBHOOK_SECRET` or `GITLAB_WEBHOOK_TOKEN` exactly (no extra spaces).
+
+- **`GET /metrics` returns `401`**  
+  Send `Authorization: Bearer <METRICS_TOKEN>` and make sure `METRICS_TOKEN` is set in `.env`.
 
 - **Webhook returns 202 but no review appears**  
   Check app logs for errors (e.g. AI or Git API failures). Ensure Redis is running and reachable. For GitLab, ensure `GITLAB_URL` points to your instance if self-hosted.

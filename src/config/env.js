@@ -25,6 +25,8 @@ const envSchema = z.object({
   GITLAB_URL: z.string().optional(),
   /** Token for verifying GitLab webhooks (X-Gitlab-Token). Set in project Webhook settings. */
   GITLAB_WEBHOOK_TOKEN: z.string().optional(),
+  /** Token required to access /metrics. */
+  METRICS_TOKEN: z.string().min(16),
   REDIS_URL: z.string().default('redis://localhost:6379'),
 })
 

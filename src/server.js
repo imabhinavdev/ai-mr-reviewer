@@ -4,6 +4,7 @@ import { httpLogger } from './config/httpLogger.js'
 import { logger } from './config/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
+import { verifyMetricsToken } from './middleware/verifyMetricsToken.js'
 import { asyncHandler } from './utils/asyncHandler.js'
 import router from './routes/index.js'
 import {
@@ -30,7 +31,7 @@ app.use(httpLogger)
 app.use(metricsMiddleware)
 
 // Routes
-app.get('/metrics', async (_req, res) => {
+app.get('/metrics', verifyMetricsToken, async (_req, res) => {
   res.set('Content-Type', register.contentType)
   res.send(await register.metrics())
 })
