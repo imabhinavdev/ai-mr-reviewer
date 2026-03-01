@@ -8,6 +8,8 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
+  /** Public base URL (e.g. https://your-domain.com) for startup log and docs. No trailing slash. */
+  BASE_URL: z.string().optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .optional(),
@@ -16,6 +18,13 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().optional(),
   GITHUB_TOKEN: z.string().optional(),
+  /** Secret for verifying GitHub webhooks (X-Hub-Signature-256). Set in repo Webhook settings. */
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  GITLAB_TOKEN: z.string().optional(),
+  GITLAB_PRIVATE_TOKEN: z.string().optional(),
+  GITLAB_URL: z.string().optional(),
+  /** Token for verifying GitLab webhooks (X-Gitlab-Token). Set in project Webhook settings. */
+  GITLAB_WEBHOOK_TOKEN: z.string().optional(),
   REDIS_URL: z.string().default('redis://localhost:6379'),
 })
 

@@ -1,121 +1,16 @@
 import { ApiError } from '../../utils/apiError.js'
+import { parseDiff } from './parseDiff.js'
+import { detectProviderFromEvent } from '../../lib/webhookProvider.js'
+import { env } from '../../config/env.js'
 
-const IGNORED_DIRS = [
-  'node_modules',
-  'dist',
-  'build',
-  'coverage',
-  '.next',
-  'out',
-]
+const GITHUB_DIFF_API = 'https://patch-diff.githubusercontent.com/raw'
 
-const isIgnoredFile = (filePath = '') => {
-  const normalized = filePath.replace(/\\/g, '/').trim()
-  if (!normalized) return true
-
-  const fileName = normalized.split('/').pop() || ''
-  if (/^package.*\.json$/i.test(fileName)) {
-    return true
-  }
-
-  return IGNORED_DIRS.some(
-    (dir) =>
-      normalized === dir ||
-      normalized.startsWith(`${dir}/`) ||
-      normalized.includes(`/${dir}/`),
-  )
-}
-
-const parseDiff = (diffText) => {
-  const lines = diffText.split('\n')
-
-  const files = []
-  let currentFile = null
-  let currentHunk = null
-
-  let oldLine = 0
-  let newLine = 0
-
-  for (const line of lines) {
-    // Detect new file
-    if (line.startsWith('diff --git')) {
-      if (currentFile?.file && !isIgnoredFile(currentFile.file)) {
-        files.push(currentFile)
-      }
-
-      currentFile = {
-        file: null,
-        hunks: [],
-      }
-
-      currentHunk = null
-      continue
-    }
-
-    // Capture filename
-    if (line.startsWith('+++ b/')) {
-      currentFile.file = line.replace('+++ b/', '').trim()
-      continue
-    }
-
-    // Detect new hunk
-    if (line.startsWith('@@')) {
-      const match = line.match(/@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@/)
-      if (!match) continue
-
-      oldLine = parseInt(match[1], 10)
-      newLine = parseInt(match[3], 10)
-
-      currentHunk = {
-        oldStart: oldLine,
-        newStart: newLine,
-        addedLines: [],
-        removedLines: [],
-      }
-
-      currentFile.hunks.push(currentHunk)
-      continue
-    }
-
-    if (!currentHunk) continue
-
-    // Added lines
-    if (line.startsWith('+') && !line.startsWith('+++')) {
-      currentHunk.addedLines.push({
-        line: newLine,
-        content: line.slice(1),
-      })
-      newLine++
-      continue
-    }
-
-    // Removed lines
-    if (line.startsWith('-') && !line.startsWith('---')) {
-      currentHunk.removedLines.push({
-        line: oldLine,
-        content: line.slice(1),
-      })
-      oldLine++
-      continue
-    }
-
-    // Context lines
-    if (!line.startsWith('\\ No newline')) {
-      oldLine++
-      newLine++
-    }
-  }
-
-  if (currentFile?.file && !isIgnoredFile(currentFile.file)) {
-    files.push(currentFile)
-  }
-
-  return files
-}
-
-export const getDiffFromEvent = async (event) => {
-  const GITHUB_DIFF_API = 'https://patch-diff.githubusercontent.com/raw'
-
+/**
+ * Fetch and parse diff for a GitHub pull_request event.
+ * @param {object} event - GitHub webhook payload
+ * @returns {Promise<Array<{ file: string, hunks: Array }>>}
+ */
+export async function getDiffFromGitHubEvent(event) {
   if (!event?.pull_request?.diff_url) {
     throw new ApiError(400, 'Invalid GitHub event payload')
   }
@@ -126,12 +21,80 @@ export const getDiffFromEvent = async (event) => {
   )
 
   const response = await fetch(diffUrl)
-
   if (!response.ok) {
     throw new ApiError(response.status, 'Failed to fetch PR diff')
   }
 
   const diff = await response.text()
-  const parsedDiff = parseDiff(diff)
-  return parsedDiff
+  return parseDiff(diff)
+}
+
+/**
+ * Fetch and parse diff for a GitLab merge_request event.
+ * Uses GET /api/v4/projects/:id/merge_requests/:iid/changes.
+ * @param {object} event - GitLab webhook payload
+ * @returns {Promise<Array<{ file: string, hunks: Array }>>}
+ */
+export async function getDiffFromGitLabEvent(event) {
+  const projectId = event?.project?.id ?? event?.project_id
+  const iid = event?.object_attributes?.iid
+
+  if (projectId == null || iid == null) {
+    throw new ApiError(400, 'Invalid GitLab merge_request payload')
+  }
+
+  const token = env.GITLAB_TOKEN ?? env.GITLAB_PRIVATE_TOKEN
+  if (!token) {
+    throw new ApiError(500, 'GITLAB_TOKEN is required for GitLab webhooks')
+  }
+
+  const baseUrl = (env.GITLAB_URL || 'https://gitlab.com').replace(/\/$/, '')
+  const encodedId = encodeURIComponent(projectId)
+  const url = `${baseUrl}/api/v4/projects/${encodedId}/merge_requests/${iid}/changes`
+
+  const response = await fetch(url, {
+    headers: {
+      'PRIVATE-TOKEN': token,
+      Accept: 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new ApiError(response.status, `GitLab API: ${errText}`)
+  }
+
+  const data = await response.json()
+  const changes = data.changes || []
+
+  const allFiles = []
+  for (const change of changes) {
+    const diff = change.diff
+    if (!diff || typeof diff !== 'string') continue
+    const files = parseDiff(diff)
+    for (const f of files) {
+      allFiles.push(f)
+    }
+  }
+
+  return allFiles
+}
+
+/**
+ * Fetch and parse diff from a webhook event (GitHub or GitLab).
+ * @param {object} event - Webhook payload (pull_request or merge_request)
+ * @returns {Promise<Array<{ file: string, hunks: Array }>>}
+ */
+export async function getDiffFromEvent(event) {
+  const provider = detectProviderFromEvent(event)
+  if (provider === 'github') {
+    return getDiffFromGitHubEvent(event)
+  }
+  if (provider === 'gitlab') {
+    return getDiffFromGitLabEvent(event)
+  }
+  throw new ApiError(
+    400,
+    'Unknown webhook payload: expected GitHub or GitLab event',
+  )
 }

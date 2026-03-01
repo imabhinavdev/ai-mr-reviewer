@@ -16,7 +16,15 @@ const app = express()
 
 //  Loggers and Cors setup
 app.disable('x-powered-by')
-app.use(express.json({ limit: '1mb' }))
+// Keep raw body for webhook signature verification (GitHub X-Hub-Signature-256)
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      req.rawBody = buf
+    },
+  }),
+)
 app.use(express.urlencoded({ extended: false }))
 app.use(httpLogger)
 app.use(metricsMiddleware)
@@ -41,11 +49,31 @@ app.get(
 app.use(notFoundHandler)
 app.use(errorHandler)
 
+function getBaseUrl() {
+  if (env.BASE_URL) {
+    return env.BASE_URL.replace(/\/$/, '')
+  }
+  return `http://localhost:${env.PORT}`
+}
+
 const server = app.listen(env.PORT, () => {
+  const baseUrl = getBaseUrl()
+  const webhookPath = '/api/v1/webhooks/review-pr'
+  const webhookUrl = `${baseUrl}${webhookPath}`
+
   logger.info(
-    { port: env.PORT, env: env.NODE_ENV },
-    `Server is running on http://localhost:${env.PORT}`,
+    { port: env.PORT, env: env.NODE_ENV, baseUrl, webhookPath },
+    `Server is running on ${baseUrl}`,
   )
+  logger.info({ webhookUrl }, `Webhook URL (GitHub & GitLab): ${webhookUrl}`)
+  logger.info(
+    {
+      health: `${baseUrl}/`,
+      metrics: `${baseUrl}/metrics`,
+    },
+    'Other endpoints: GET / (health), GET /metrics (Prometheus)',
+  )
+
   startReviewWorker()
 })
 
