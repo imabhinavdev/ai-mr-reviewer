@@ -5,5 +5,4 @@ logs
 *.log
 dist
 coverage
-.cursor
 .DS_Store

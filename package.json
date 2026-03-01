@@ -35,7 +35,7 @@
     "url": "https://github.com/imabhinavdev/nirik/issues"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "packageManager": "pnpm@10.30.3",
   "dependencies": {

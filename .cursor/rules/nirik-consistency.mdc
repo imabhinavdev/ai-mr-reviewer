@@ -1,0 +1,90 @@
+---
+description: Nirik project consistency — style, structure, errors, logging, and docs (Node 22, ESM)
+alwaysApply: true
+---
+
+# Nirik project consistency
+
+Follow these conventions in all code so the codebase stays consistent.
+
+## Runtime and module system
+
+- **Node.js 22** — Project targets Node 22 (see `engines` in package.json). Do not rely on features or APIs that require a newer major.
+- **ESM only** — Use `import`/`export`. All imports must include the **`.js`** extension (e.g. `from './config/logger.js'`).
+
+## Formatting (Prettier)
+
+- **Indent:** 2 spaces.
+- **Quotes:** Single quotes for strings.
+- **Semicolons:** Omit (no semicolons).
+- **Trailing commas:** Use in multiline arrays, objects, and argument lists.
+
+```javascript
+// Good
+const obj = {
+  foo: 'bar',
+  baz: 1,
+}
+export async function doThing(a, b) {
+  return a + b
+}
+```
+
+## Structure and layout
+
+- **Routes:** `src/routes/` — mount under `/api/v1` in server.
+- **Controllers:** `src/controllers/` — use `asyncHandler` for async route handlers; never leave async errors uncaught.
+- **Services:** `src/services/` — provider-specific under `services/` (e.g. `github.service.js`, `gitlab.service.js`); shared AI under `services/ai/`; review pipeline under `services/review/`.
+- **Config:** `src/config/` — env, logger, redis, etc.
+- **Lib:** `src/lib/` — provider-agnostic helpers (e.g. webhook detection).
+- **Utils:** `src/utils/` — generic helpers (e.g. `asyncHandler`, `apiError`).
+
+## Logging and errors
+
+- **Use pino only** — Import `logger` from `./config/logger.js`. Do **not** use `console.log`/`console.error` in application code.
+- **Structured logs** — Pass a context object as the first argument: `logger.info({ err, userId }, 'Message')`.
+- **Async route handlers** — Wrap in `asyncHandler(handler)` so rejections are passed to Express error middleware.
+
+```javascript
+// Good
+import { asyncHandler } from '../utils/asyncHandler.js'
+import { logger } from '../config/logger.js'
+
+app.get('/thing', asyncHandler(async (req, res) => {
+  logger.debug({ id: req.id }, 'Thing requested')
+  const data = await fetchData()
+  res.json(data)
+}))
+```
+
+```javascript
+// Bad — no asyncHandler, console used
+app.get('/thing', async (req, res) => {
+  console.log('Thing requested')
+  const data = await fetchData()
+  res.json(data)
+})
+```
+
+- **Throwing** — Use `throw new Error('...')` or project `ApiError` from `utils/apiError.js` where appropriate. Let middleware handle HTTP status.
+
+## JSDoc
+
+- Add JSDoc for **exported** functions and important module-level constants.
+- Include `@param` and `@returns` (or `@returns {Promise<...>}` for async) so types and intent are clear.
+
+```javascript
+/**
+ * Fetch project-specific review rules from .nirik/rules.md at the PR/MR head ref.
+ * @param {object} event - Webhook payload (GitHub pull_request or GitLab merge_request)
+ * @returns {Promise<string>} Rules content, or '' if not found/error
+ */
+export async function getReviewRules(event) {
+  // ...
+}
+```
+
+## Checks before PR
+
+- Run `pnpm run lint` and `pnpm run format` (or `pnpm run codecheck`) and fix any issues.
+- New code should follow the same patterns as existing services and routes (import paths, logger, asyncHandler, JSDoc).
