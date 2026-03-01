@@ -185,6 +185,8 @@ So you always know exactly what URL to paste into GitHub or GitLab.
 
 You need to tell GitHub or GitLab to send events to this app when a PR/MR is opened or updated.
 
+**When reviews run:** The app only runs a review when the PR/MR is **opened** or when **new commits are pushed** (sync). GitHub: `opened` and `synchronize` actions. GitLab: `open`, `reopen`, and `update` actions. Other events (e.g. closed, labeled) are acknowledged with `200` but no job is enqueued.
+
 ### GitHub
 
 1. Open your repo on GitHub → **Settings** → **Webhooks** → **Add webhook**.
@@ -232,11 +234,11 @@ The app can verify that webhook requests really come from GitHub or GitLab.
 
 ## API reference
 
-| Method | Path                         | Description                                                                                                                                                                                                                                                                                                                                                                   |
-| ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/`                          | Health check. Returns JSON `{ success: true, message: "Hello World", requestId }`.                                                                                                                                                                                                                                                                                            |
-| `POST` | `/api/v1/webhooks/review-pr` | **Webhook** for GitHub (pull_request) or GitLab (merge_request). Body must be the raw JSON payload from GitHub/GitLab. Returns `202 Accepted` and `{ accepted: true, message: "Review started", provider }` when the job is enqueued. If webhook verification is enabled and the request is invalid, returns `401`. If the payload is not a valid PR/MR event, returns `400`. |
-| `GET`  | `/metrics`                   | Prometheus-format metrics (request counts, review job counts/duration, etc.).                                                                                                                                                                                                                                                                                                 |
+| Method | Path                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`  | `/`                          | Health check. Returns JSON `{ success: true, message: "Hello World", requestId }`.                                                                                                                                                                                                                                                                                                                                                               |
+| `POST` | `/api/v1/webhooks/review-pr` | **Webhook** for GitHub (pull_request) or GitLab (merge_request). Only **opened** and **synchronize** (GitHub) or **open**, **reopen**, and **update** (GitLab) trigger a review; other actions return `200` with `accepted: false`. Returns `202` and `{ accepted: true, message: "Review started", provider }` when the job is enqueued. Returns `401` if verification is enabled and invalid; `400` if the payload is not a valid PR/MR event. |
+| `GET`  | `/metrics`                   | Prometheus-format metrics (request counts, review job counts/duration, etc.).                                                                                                                                                                                                                                                                                                                                                                    |
 
 ---
 

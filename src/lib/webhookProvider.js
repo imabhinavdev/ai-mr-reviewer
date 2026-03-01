@@ -1,3 +1,27 @@
+/** GitHub pull_request actions we process: PR opened or new commits pushed. */
+const GITHUB_ACTIONS = new Set(['opened', 'synchronize'])
+
+/** GitLab merge_request actions we process: MR opened, reopened, or new commits. */
+const GITLAB_ACTIONS = new Set(['open', 'reopen', 'update'])
+
+/**
+ * Whether this webhook event should trigger a review (only PR/MR opened or sync).
+ * @param {'github'|'gitlab'} provider
+ * @param {object} event - Parsed webhook event
+ * @returns {boolean}
+ */
+export function isReviewableAction(provider, event) {
+  if (provider === 'github') {
+    const action = event?.action
+    return typeof action === 'string' && GITHUB_ACTIONS.has(action)
+  }
+  if (provider === 'gitlab') {
+    const action = event?.object_attributes?.action
+    return typeof action === 'string' && GITLAB_ACTIONS.has(action)
+  }
+  return false
+}
+
 /**
  * Detect Git provider from webhook payload and return provider + validated event.
  * @param {object} body - Raw webhook body
