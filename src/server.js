@@ -5,27 +5,36 @@ import { logger } from './config/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import { asyncHandler } from './utils/asyncHandler.js'
-
+import router from './routes/index.js'
 const app = express()
 
+//  Loggers and Cors setup
 app.disable('x-powered-by')
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: false }))
 app.use(httpLogger)
 
+// Routes Imported here
+app.use('/api/v1', router)
 app.get(
   '/',
   asyncHandler(async (req, res) => {
     req.log.info({ requestId: req.id }, 'Health route hit')
-    res.status(200).json({ success: true, message: 'Hello World', requestId: req.id })
-  })
+    res
+      .status(200)
+      .json({ success: true, message: 'Hello World', requestId: req.id })
+  }),
 )
 
+// Global Middlewares for error handling
 app.use(notFoundHandler)
 app.use(errorHandler)
 
 const server = app.listen(env.PORT, () => {
-  logger.info({ port: env.PORT, env: env.NODE_ENV }, `Server is running on http://localhost:${env.PORT}`)
+  logger.info(
+    { port: env.PORT, env: env.NODE_ENV },
+    `Server is running on http://localhost:${env.PORT}`,
+  )
 })
 
 const shutdown = (signal) => {

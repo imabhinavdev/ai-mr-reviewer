@@ -6,7 +6,10 @@ export const httpLogger = pinoHttp({
   logger,
   genReqId: (req, res) => {
     const existingId = req.headers['x-request-id']
-    const requestId = typeof existingId === 'string' && existingId.trim() ? existingId : randomUUID()
+    const requestId =
+      typeof existingId === 'string' && existingId.trim()
+        ? existingId
+        : randomUUID()
     res.setHeader('x-request-id', requestId)
     return requestId
   },
@@ -21,6 +24,8 @@ export const httpLogger = pinoHttp({
 
     return 'info'
   },
-  customSuccessMessage: (req, res) => `${req.method} ${req.url} completed with ${res.statusCode}`,
-  customErrorMessage: (req, res, error) => `${req.method} ${req.url} failed with ${res.statusCode}: ${error.message}`
+  customSuccessMessage: (req, res) =>
+    `${req.method} ${req.url} completed with ${res.statusCode}`,
+  customErrorMessage: (req, res, error) =>
+    `${req.method} ${req.url} failed with ${res.statusCode}: ${error.message}`,
 })

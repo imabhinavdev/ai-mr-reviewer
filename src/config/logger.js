@@ -12,8 +12,11 @@ const transport = isProduction
   ? pino.transport({
       targets: [
         { target: 'pino/file', options: { destination: 1 } },
-        { target: 'pino/file', options: { destination: prodLogPath, mkdir: true } }
-      ]
+        {
+          target: 'pino/file',
+          options: { destination: prodLogPath, mkdir: true },
+        },
+      ],
     })
   : pino.transport({
       target: 'pino-pretty',
@@ -21,8 +24,8 @@ const transport = isProduction
         colorize: true,
         singleLine: true,
         translateTime: 'SYS:standard',
-        ignore: 'pid,hostname'
-      }
+        ignore: 'pid,hostname',
+      },
     })
 
 export const logger = pino(
@@ -35,10 +38,10 @@ export const logger = pino(
         'password',
         '*.password',
         '*.token',
-        '*.apiKey'
+        '*.apiKey',
       ],
-      censor: '[REDACTED]'
-    }
+      censor: '[REDACTED]',
+    },
   },
-  transport
+  transport,
 )
