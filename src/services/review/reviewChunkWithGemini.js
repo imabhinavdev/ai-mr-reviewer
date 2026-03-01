@@ -1,18 +1,24 @@
 import { z } from 'zod'
-import { generateContentStructured } from './gemini.js'
+import { generateContentStructured } from '../gemini.service.js'
 
 /** JSON Schema for Gemini structured output (one chunk). */
 export const reviewChunkResponseSchema = {
   type: 'object',
   properties: {
-    summary: { type: 'string', description: 'Brief summary of findings for this chunk' },
+    summary: {
+      type: 'string',
+      description: 'Brief summary of findings for this chunk',
+    },
     reviewComments: {
       type: 'array',
       description: 'Line-level review comments',
       items: {
         type: 'object',
         properties: {
-          file: { type: 'string', description: 'File path as given in the code block' },
+          file: {
+            type: 'string',
+            description: 'File path as given in the code block',
+          },
           line: { type: 'integer', description: 'Line number in the new file' },
           severity: {
             type: 'string',
@@ -58,7 +64,11 @@ function buildChunkPrompt(lines, chunkIndex) {
     }
     blocks.push(`Line ${line}: ${content}`)
   }
-  return header + (chunkIndex >= 0 ? `Chunk ${chunkIndex + 1}.\n` : '') + blocks.join('\n').trim()
+  return (
+    header +
+    (chunkIndex >= 0 ? `Chunk ${chunkIndex + 1}.\n` : '') +
+    blocks.join('\n').trim()
+  )
 }
 
 /**

@@ -1,10 +1,11 @@
 node_modules
+.git
 .env
 .env.*
-.env.local
 logs
 *.log
-dist
 coverage
 .cursor
 .DS_Store
+*.md
+!README.md

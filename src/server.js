@@ -6,6 +6,12 @@ import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import { asyncHandler } from './utils/asyncHandler.js'
 import router from './routes/index.js'
+import {
+  startReviewWorker,
+  closeReviewQueue,
+} from './services/queue/reviewQueue.js'
+import { register, metricsMiddleware } from './metrics.js'
+
 const app = express()
 
 //  Loggers and Cors setup
@@ -13,8 +19,13 @@ app.disable('x-powered-by')
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: false }))
 app.use(httpLogger)
+app.use(metricsMiddleware)
 
-// Routes Imported here
+// Routes
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', register.contentType)
+  res.send(await register.metrics())
+})
 app.use('/api/v1', router)
 app.get(
   '/',
@@ -35,11 +46,13 @@ const server = app.listen(env.PORT, () => {
     { port: env.PORT, env: env.NODE_ENV },
     `Server is running on http://localhost:${env.PORT}`,
   )
+  startReviewWorker()
 })
 
-const shutdown = (signal) => {
+const shutdown = async (signal) => {
   logger.warn({ signal }, 'Shutdown signal received')
 
+  await closeReviewQueue()
   server.close(() => {
     logger.info('HTTP server closed')
     process.exit(0)
@@ -51,8 +64,8 @@ const shutdown = (signal) => {
   }, 10000).unref()
 }
 
-process.on('SIGINT', () => shutdown('SIGINT'))
-process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT').catch(() => process.exit(1)))
+process.on('SIGTERM', () => shutdown('SIGTERM').catch(() => process.exit(1)))
 process.on('unhandledRejection', (reason) => {
   logger.fatal({ err: reason }, 'Unhandled promise rejection')
 })

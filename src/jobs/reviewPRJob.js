@@ -1,10 +1,10 @@
-import { getDiffFromEvent } from '../utils/getDiffFromEvent.js'
-import { filterReviewableDiff } from '../utils/filterReviewableDiff.js'
-import { extractReviewableLines } from '../utils/extractReviewableLines.js'
-import { chunkReviewableLines } from '../utils/chunkReviewableLines.js'
-import { reviewChunkWithGemini } from '../utils/reviewChunkWithGemini.js'
-import { mergeReviewChunks } from '../utils/mergeReviewChunks.js'
-import { createPullRequestReview } from '../utils/github.js'
+import { getDiffFromEvent } from '../services/review/getDiffFromEvent.js'
+import { filterReviewableDiff } from '../services/review/filterReviewableDiff.js'
+import { extractReviewableLines } from '../services/review/extractReviewableLines.js'
+import { chunkReviewableLines } from '../services/review/chunkReviewableLines.js'
+import { reviewChunkWithGemini } from '../services/review/reviewChunkWithGemini.js'
+import { mergeReviewChunks } from '../services/review/mergeReviewChunks.js'
+import { createPullRequestReview } from '../services/github.service.js'
 import { logger } from '../config/logger.js'
 
 /**
@@ -17,7 +17,10 @@ export async function runReviewPRJob(event) {
   const headSha = event?.pull_request?.head?.sha
 
   if (!repo || prNumber == null) {
-    logger.warn({ repo, prNumber }, 'Review job skipped: missing repository or PR number')
+    logger.warn(
+      { repo, prNumber },
+      'Review job skipped: missing repository or PR number',
+    )
     return
   }
 
@@ -27,7 +30,10 @@ export async function runReviewPRJob(event) {
     const lines = extractReviewableLines(filtered)
 
     if (lines.length === 0) {
-      logger.info({ repo, prNumber }, 'No reviewable added lines; skipping review')
+      logger.info(
+        { repo, prNumber },
+        'No reviewable added lines; skipping review',
+      )
       return
     }
 

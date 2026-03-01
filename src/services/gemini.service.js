@@ -17,7 +17,10 @@ export const generateContent = async (contents) => {
  * @param {object} responseJsonSchema - JSON Schema for the response (subset supported by Gemini)
  * @returns {Promise<string>} Raw JSON string; caller should parse and validate
  */
-export const generateContentStructured = async (contents, responseJsonSchema) => {
+export const generateContentStructured = async (
+  contents,
+  responseJsonSchema,
+) => {
   const response = await ai.models.generateContent({
     model: env.GEMINI_MODEL || 'gemini-2.0-flash',
     contents,

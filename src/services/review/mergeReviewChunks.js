@@ -27,9 +27,7 @@ export function mergeReviewChunks(chunkResults) {
     }
   }
 
-  const summaries = chunkResults
-    .map((c) => c?.summary?.trim())
-    .filter(Boolean)
+  const summaries = chunkResults.map((c) => c?.summary?.trim()).filter(Boolean)
   const reviewBody =
     summaries.length > 0
       ? '## Summary\n\n' + summaries.join('\n\n')

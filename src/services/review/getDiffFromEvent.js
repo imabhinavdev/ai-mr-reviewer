@@ -1,4 +1,4 @@
-import { ApiError } from './apiError.js'
+import { ApiError } from '../../utils/apiError.js'
 
 const IGNORED_DIRS = [
   'node_modules',
