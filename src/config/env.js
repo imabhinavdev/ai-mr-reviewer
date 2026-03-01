@@ -15,6 +15,7 @@ const envSchema = z.object({
   OPENAI_MODEL: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().optional(),
+  GITHUB_TOKEN: z.string().optional(),
 })
 
 export const env = envSchema.parse(process.env)

@@ -1,5 +1,31 @@
 import { ApiError } from './apiError.js'
 
+const IGNORED_DIRS = [
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  '.next',
+  'out',
+]
+
+const isIgnoredFile = (filePath = '') => {
+  const normalized = filePath.replace(/\\/g, '/').trim()
+  if (!normalized) return true
+
+  const fileName = normalized.split('/').pop() || ''
+  if (/^package.*\.json$/i.test(fileName)) {
+    return true
+  }
+
+  return IGNORED_DIRS.some(
+    (dir) =>
+      normalized === dir ||
+      normalized.startsWith(`${dir}/`) ||
+      normalized.includes(`/${dir}/`),
+  )
+}
+
 const parseDiff = (diffText) => {
   const lines = diffText.split('\n')
 
@@ -11,9 +37,9 @@ const parseDiff = (diffText) => {
   let newLine = 0
 
   for (const line of lines) {
-    // 1️⃣ Detect new file
+    // Detect new file
     if (line.startsWith('diff --git')) {
-      if (currentFile) {
+      if (currentFile?.file && !isIgnoredFile(currentFile.file)) {
         files.push(currentFile)
       }
 
@@ -26,13 +52,13 @@ const parseDiff = (diffText) => {
       continue
     }
 
-    // 2️⃣ Capture filename
+    // Capture filename
     if (line.startsWith('+++ b/')) {
       currentFile.file = line.replace('+++ b/', '').trim()
       continue
     }
 
-    // 3️⃣ Detect new hunk
+    // Detect new hunk
     if (line.startsWith('@@')) {
       const match = line.match(/@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@/)
       if (!match) continue
@@ -53,7 +79,7 @@ const parseDiff = (diffText) => {
 
     if (!currentHunk) continue
 
-    // 4️⃣ Added lines
+    // Added lines
     if (line.startsWith('+') && !line.startsWith('+++')) {
       currentHunk.addedLines.push({
         line: newLine,
@@ -63,7 +89,7 @@ const parseDiff = (diffText) => {
       continue
     }
 
-    // 5️⃣ Removed lines
+    // Removed lines
     if (line.startsWith('-') && !line.startsWith('---')) {
       currentHunk.removedLines.push({
         line: oldLine,
@@ -73,14 +99,14 @@ const parseDiff = (diffText) => {
       continue
     }
 
-    // 6️⃣ Context lines
+    // Context lines
     if (!line.startsWith('\\ No newline')) {
       oldLine++
       newLine++
     }
   }
 
-  if (currentFile) {
+  if (currentFile?.file && !isIgnoredFile(currentFile.file)) {
     files.push(currentFile)
   }
 
