@@ -1,7 +1,11 @@
 import dotenv from 'dotenv'
 import { z } from 'zod'
 
-dotenv.config()
+// In production (e.g. Docker), env is provided by the platform (env_file, process.env).
+// Loading .env only in non-production avoids "injecting env (0)" and tip logs when no file exists.
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ quiet: true })
+}
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
