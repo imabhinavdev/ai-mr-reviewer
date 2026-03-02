@@ -87,13 +87,41 @@ export async function getDiffFromGitLabEvent(event) {
     )
   }
 
-  const allFiles = []
+  let allFiles = []
   for (const change of changes) {
     const diff = change.diff
     if (!diff || typeof diff !== 'string') continue
     const files = parseDiff(diff)
     for (const f of files) {
       allFiles.push(f)
+    }
+  }
+
+  // Fallback: changes endpoint often returns empty diff content; use raw_diffs for actual diff
+  if (allFiles.length === 0) {
+    const rawDiffsUrl = `${baseUrl}/api/v4/projects/${encodedId}/merge_requests/${iid}/raw_diffs`
+    const rawRes = await fetch(rawDiffsUrl, {
+      headers: {
+        'PRIVATE-TOKEN': token,
+        Accept: 'text/plain',
+      },
+    })
+    if (rawRes.ok) {
+      const rawText = await rawRes.text()
+      if (rawText && rawText.trim()) {
+        allFiles = parseDiff(rawText)
+        if (allFiles.length > 0) {
+          logger.info(
+            { projectId, iid, fileCount: allFiles.length, source: 'raw_diffs' },
+            'GitLab: got diff from raw_diffs (changes had no content)',
+          )
+        }
+      }
+    } else {
+      logger.warn(
+        { projectId, iid, status: rawRes.status },
+        'GitLab raw_diffs request failed; review will have no diff files',
+      )
     }
   }
 

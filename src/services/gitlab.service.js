@@ -1,5 +1,16 @@
+import crypto from 'node:crypto'
 import { env } from '../config/env.js'
 import { logger } from '../config/logger.js'
+
+/**
+ * GitLab line_code for position: hash(file_path)_old_line_new_line.
+ * For new (added) lines use old_line 0.
+ */
+function buildLineCode(filePath, oldLine, newLine) {
+  const hash = crypto.createHash('sha1').update(filePath).digest('hex')
+  const old = oldLine ?? 0
+  return `${hash}_${old}_${newLine}`
+}
 
 function getBaseUrl() {
   return (env.GITLAB_URL || 'https://gitlab.com').replace(/\/$/, '')
@@ -178,12 +189,15 @@ export async function createMergeRequestReview({
   const commentList = comments || []
   for (let i = 0; i < commentList.length; i++) {
     const c = commentList[i]
+    // For added lines: old_line null; line_code required by GitLab (hash_path_old_new)
+    const lineCode = buildLineCode(c.file, null, c.line)
     const position = {
       position_type: 'text',
       new_path: c.file,
       new_line: c.line,
       old_path: c.file,
-      old_line: c.line,
+      old_line: null,
+      line_code: lineCode,
       base_sha: diffRefs.base_sha,
       start_sha: diffRefs.start_sha,
       head_sha: diffRefs.head_sha,
