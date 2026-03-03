@@ -33,9 +33,9 @@ Built for teams who want fewer "looks good to me" comments and fewer 2 a.m. "who
 
 1. **You** configure a webhook in your GitHub or GitLab repo pointing to this app.
 2. **When** you open or update a Pull Request (GitHub) or Merge Request (GitLab), the platform sends a webhook to this app.
-3. **The app** fetches the PR/MR diff, filters out noise (e.g. lock files, minified code), and sends only the **added lines** to an AI (Google Gemini or OpenAI).
-4. **The AI** returns a structured review (summary + line-level comments).
-5. **The app** posts that review back to your PR/MR so you and your team see it like a normal code review.
+3. **The app** fetches the PR/MR diff, filters out noise (e.g. lock files, minified code), and sends **full hunk context** (unchanged context, removed, and added lines) to an AI (Google Gemini or OpenAI) so it can understand each change.
+4. **The AI** returns a structured review (summary + line-level comments). By default it reports only **summary and errors** (and warnings); info/suggestions are included only when your project rules ask for them.
+5. **The app** posts that review back to your PR/MR (comments are attached only to **added** lines) so you and your team see it like a normal code review.
 
 You need to provide:
 
@@ -51,7 +51,8 @@ You need to provide:
 - **GitLab** – Merge request webhooks (GitLab.com and self-hosted); posts a discussion with summary and line-level comments.
 - **Single webhook URL** – One endpoint for both GitHub and GitLab; the app detects the provider from the payload.
 - **AI** – Google **Gemini** or **OpenAI** (you set one or both; Gemini takes precedence if both keys are set).
-- **Efficient** – Only added lines are reviewed; files like `package-lock.json`, `*.min.js`, images are skipped to save tokens.
+- **Full context** – Sends full hunks (context + removed + added lines) to the AI so reviews are accurate; comments are posted only on added lines. Noisy files like `package-lock.json`, `*.min.js`, images are skipped.
+- **Default: summary + errors** – By default the AI outputs only a summary and error/warning-level findings. Info and suggestions are included only when you request them in `.nirik/rules.md`.
 - **Background jobs** – Uses Redis (BullMQ) so the webhook responds with `202 Accepted` immediately and the review runs asynchronously.
 - **Metrics** – Prometheus-style metrics at `GET /metrics` for monitoring.
 - **Docker** – Run the app and Redis with `docker compose up`.
@@ -299,9 +300,9 @@ The app can verify that webhook requests really come from GitHub or GitLab.
 1. **Webhook** – GitHub or GitLab sends a `pull_request` or `merge_request` event to `POST /api/v1/webhooks/review-pr`.
 2. **Verify** – If you set `GITHUB_WEBHOOK_SECRET` or `GITLAB_WEBHOOK_TOKEN`, the app verifies the request.
 3. **Accept** – The app validates the payload, enqueues a job in Redis, and responds **202 Accepted**.
-4. **Background job** – A worker picks the job up, detects GitHub vs GitLab, fetches the diff via the provider’s API, filters and chunks the added lines, calls the AI (Gemini or OpenAI) for each chunk, merges the results, and posts the review (GitHub PR review or GitLab MR discussions).
+4. **Background job** – A worker picks the job up, detects GitHub vs GitLab, fetches the diff via the provider’s API, filters files and chunks **full hunks** (context + removed + added lines), calls the AI (Gemini or OpenAI) for each chunk, merges the results, and posts the review (GitHub PR review or GitLab MR discussions). Comments are attached only to added lines.
 
-**Project-specific rules:** You can add a `.nirik/rules.md` file in your repo (on the branch being reviewed) with project-specific review rules; the AI will apply them when reviewing. If the file is missing, the review uses the default prompt only.
+**Project-specific rules:** Add a `.nirik/rules.md` file in your repo (on the branch being reviewed) with project-specific review rules; the AI will apply them. If the file is missing, the review uses the default prompt only. By default the AI outputs **summary and errors/warnings**; to get **info** or **suggestion**-level comments, mention that in your rules (e.g. “suggestions”, “info”, “hints”).
 
 ---
 

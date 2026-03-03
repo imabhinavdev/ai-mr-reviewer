@@ -70,8 +70,13 @@
         <p>
           Nirik is a self-hosted AI code review service for GitHub pull requests
           and GitLab merge requests. When PR/MR events arrive by webhook, Nirik
-          fetches the diff, filters noisy files, reviews added lines with AI,
-          and posts review comments back on the PR/MR.
+          fetches the diff, filters noisy files, and sends
+          <strong>full hunk context</strong> (unchanged context, removed, and
+          added lines) to the AI so reviews are accurate. It posts comments only
+          on <strong>added</strong> lines. By default the AI outputs a
+          <strong>summary and errors</strong>
+          (and warnings); info/suggestion-level comments are included only when
+          your project rules request them.
         </p>
         <p>
           Think of it as a reviewer who never sleeps, never bikesheds variable
@@ -85,7 +90,15 @@
           <li>Supports GitHub PR webhooks and GitLab MR webhooks.</li>
           <li>Single webhook endpoint for both providers.</li>
           <li>Uses Gemini or OpenAI for AI review generation.</li>
-          <li>Reviews only added lines to reduce token usage.</li>
+          <li>
+            Sends full hunk context (context + removed + added lines) to the AI
+            for accurate reviews; comments are posted only on added lines.
+          </li>
+          <li>
+            Default: summary and errors (and warnings) only; info/suggestions
+            when project rules request them (e.g. in
+            <code>.nirik/rules.md</code>).
+          </li>
           <li>
             Background processing with queue workers for fast webhook responses.
           </li>
@@ -104,8 +117,15 @@
           <li>Nirik verifies request signature/token (if configured).</li>
           <li>Nirik validates event action and enqueues review job.</li>
           <li>Worker fetches diff using Git provider API.</li>
-          <li>Review engine filters files and chunks added lines.</li>
-          <li>AI generates summary + line comments.</li>
+          <li>
+            Review engine filters files and chunks <strong>full hunks</strong>
+            (context + removed + added lines); comments are attached only to
+            added lines.
+          </li>
+          <li>
+            AI generates summary + line comments (default: summary and
+            errors/warnings only unless rules request info/suggestions).
+          </li>
           <li>Nirik posts comments/discussions back to PR/MR.</li>
         </ol>
       </section>
@@ -354,6 +374,13 @@ pnpm start</code></pre>
           branch to apply custom review instructions. If not present, default
           prompt rules are used.
         </p>
+        <p>
+          By default the AI outputs only a
+          <strong>summary and error/warning</strong> findings. To receive
+          <strong>info</strong> or <strong>suggestion</strong>-level comments,
+          mention that in your rules (e.g. include words like
+          &quot;suggestions&quot;, &quot;info&quot;, or &quot;hints&quot;).
+        </p>
       </section>
 
       <section class="doc reveal" id="operations">
@@ -409,6 +436,13 @@ pnpm start</code></pre>
 
         <h3>Can I run this without Docker?</h3>
         <p>Yes. Install dependencies and run the Node server directly.</p>
+
+        <h3>Why only summary and errors by default?</h3>
+        <p>
+          To keep reviews focused. Info and suggestion-level comments are
+          enabled when your <code>.nirik/rules.md</code> asks for them (e.g. by
+          mentioning &quot;suggestions&quot; or &quot;info&quot;).
+        </p>
 
         <h3>Will this end code review debates forever?</h3>
         <p>
