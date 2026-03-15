@@ -91,6 +91,22 @@ export async function listMergeRequestDiscussions(projectId, iid) {
 }
 
 /**
+ * Get project info including default branch.
+ * @param {string|number} projectId
+ * @returns {Promise<{ default_branch: string }>}
+ */
+export async function getProject(projectId) {
+  const encodedId = encodeURIComponent(projectId)
+  const res = await glFetch(`/api/v4/projects/${encodedId}`)
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GitLab get project failed: ${res.status} ${text}`)
+  }
+  const data = await res.json()
+  return { default_branch: data.default_branch || 'main' }
+}
+
+/**
  * Get raw file contents from the repository at a given ref.
  * Returns null if the file is not found (404).
  * @param {string|number} projectId

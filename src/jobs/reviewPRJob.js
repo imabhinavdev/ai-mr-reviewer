@@ -8,10 +8,50 @@ import { getExistingReviewComments } from '../services/review/getExistingReviewC
 import { postReview } from '../services/review/postReview.js'
 import { detectProviderFromEvent } from '../lib/webhookProvider.js'
 import { logger } from '../config/logger.js'
+import { isDbConfigured } from '../config/db.js'
+import { updateReviewEventByBullmqJobId } from '../db/repositories/reviewEvents.js'
 
 /** Default: only error and warning. If rules mention suggestions/info, allow those too. */
 const DEFAULT_SEVERITIES = ['error', 'warning']
 const ALL_SEVERITIES = ['error', 'warning', 'info', 'suggestion']
+
+/**
+ * @param {Array<{ file: string, hunks?: Array<{ addedLines?: Array<unknown>, removedLines?: Array<unknown> }> }>} diffFiles
+ * @returns {{ filesChanged: number, linesAdded: number, linesRemoved: number }}
+ */
+function computeComplexity(diffFiles) {
+  if (!Array.isArray(diffFiles)) return { filesChanged: 0, linesAdded: 0, linesRemoved: 0 }
+  let linesAdded = 0
+  let linesRemoved = 0
+  for (const f of diffFiles) {
+    const hunks = f?.hunks ?? []
+    for (const h of hunks) {
+      linesAdded += (h.addedLines?.length ?? 0)
+      linesRemoved += (h.removedLines?.length ?? 0)
+    }
+  }
+  return {
+    filesChanged: diffFiles.length,
+    linesAdded,
+    linesRemoved,
+  }
+}
+
+/**
+ * @param {Array<{ category?: string, severity: string }>} comments
+ * @returns {Array<{ category: string, severity: string, count: number }>}
+ */
+function aggregateFindings(comments) {
+  const map = new Map()
+  for (const c of comments) {
+    const key = `${c.category ?? 'other'}:${c.severity}`
+    map.set(key, (map.get(key) ?? 0) + 1)
+  }
+  return Array.from(map.entries()).map(([key, count]) => {
+    const [category, severity] = key.split(':')
+    return { category, severity, count }
+  })
+}
 
 /**
  * @param {string} rules - Content of .nirik/rules.md
@@ -27,7 +67,7 @@ function rulesAllowInfoOrSuggestion(rules) {
  * Run the full PR/MR review pipeline in the background.
  * @param {object} event - Webhook payload (GitHub pull_request or GitLab merge_request)
  * @param {{ jobId?: string }} [jobMeta] - Optional job metadata from the queue worker
- * @returns {Promise<{ commentsPosted: number } | undefined>} Comments posted count on success; undefined when skipped
+ * @returns {Promise<{ commentsPosted: number, findings?: Array<{ category: string, severity: string, count: number }>, filesChanged?: number, linesAdded?: number, linesRemoved?: number } | undefined>}
  */
 export async function runReviewPRJob(event, jobMeta = {}) {
   const provider = detectProviderFromEvent(event)
@@ -79,6 +119,20 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       'Diff loaded',
     )
 
+    const complexity = computeComplexity(Array.isArray(diffFiles) ? diffFiles : [])
+    if (isDbConfigured() && jobMeta.jobId) {
+      try {
+        await updateReviewEventByBullmqJobId(jobMeta.jobId, {
+          diffFetchedAt: new Date(),
+          filesChanged: complexity.filesChanged,
+          linesAdded: complexity.linesAdded,
+          linesRemoved: complexity.linesRemoved,
+        })
+      } catch (err) {
+        logger.warn({ err, jobId: jobMeta.jobId }, 'Failed to update review event (diff fetched)')
+      }
+    }
+
     const filtered = filterReviewableDiff(diffFiles)
     const chunks = getReviewChunks(filtered)
 
@@ -95,8 +149,23 @@ export async function runReviewPRJob(event, jobMeta = {}) {
         },
         'No reviewable hunks; skipping review (nothing commented)',
       )
-      return { commentsPosted: 0 }
+      return {
+        commentsPosted: 0,
+        findings: [],
+        filesChanged: complexity.filesChanged,
+        linesAdded: complexity.linesAdded,
+        linesRemoved: complexity.linesRemoved,
+      }
     }
+
+    if (isDbConfigured() && jobMeta.jobId) {
+      try {
+        await updateReviewEventByBullmqJobId(jobMeta.jobId, { aiStartedAt: new Date() })
+      } catch (err) {
+        logger.warn({ err, jobId: jobMeta.jobId }, 'Failed to update review event (AI started)')
+      }
+    }
+
     const chunkResults = []
 
     for (let i = 0; i < chunks.length; i++) {
@@ -112,6 +181,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
     const filteredComments = reviewComments.filter((c) =>
       allowedSeverities.includes(c.severity),
     )
+    const findings = aggregateFindings(filteredComments)
 
     const commentsForGit = filteredComments.map((c) => ({
       file: c.file,
@@ -140,7 +210,18 @@ export async function runReviewPRJob(event, jobMeta = {}) {
         },
         'No new findings; skipping post (all comments already exist; nothing commented)',
       )
-      return { commentsPosted: 0 }
+      if (isDbConfigured() && jobMeta.jobId) {
+        try {
+          await updateReviewEventByBullmqJobId(jobMeta.jobId, { commentsPostedAt: new Date() })
+        } catch (_) {}
+      }
+      return {
+        commentsPosted: 0,
+        findings,
+        filesChanged: complexity.filesChanged,
+        linesAdded: complexity.linesAdded,
+        linesRemoved: complexity.linesRemoved,
+      }
     }
 
     logger.info(
@@ -164,6 +245,12 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       diffRefs,
     })
 
+    if (isDbConfigured() && jobMeta.jobId) {
+      try {
+        await updateReviewEventByBullmqJobId(jobMeta.jobId, { commentsPostedAt: new Date() })
+      } catch (_) {}
+    }
+
     logger.info(
       {
         provider,
@@ -177,7 +264,13 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       },
       'Review posted successfully (summary + line comments)',
     )
-    return { commentsPosted: commentsToPost.length }
+    return {
+      commentsPosted: commentsToPost.length,
+      findings,
+      filesChanged: complexity.filesChanged,
+      linesAdded: complexity.linesAdded,
+      linesRemoved: complexity.linesRemoved,
+    }
   } catch (err) {
     logger.error(
       {

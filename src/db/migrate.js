@@ -1,5 +1,5 @@
 import pg from 'pg'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { env } from '../config/env.js'
@@ -17,11 +17,13 @@ export async function runMigrations() {
   await client.connect()
 
   try {
-    const sql = readFileSync(
-      join(__dirname, 'migrations', '0000_create_review_events.sql'),
-      'utf-8',
-    )
-    await client.query(sql)
+    const files = readdirSync(join(__dirname, 'migrations'))
+      .filter((f) => f.endsWith('.sql'))
+      .sort()
+    for (const file of files) {
+      const sql = readFileSync(join(__dirname, 'migrations', file), 'utf-8')
+      await client.query(sql)
+    }
   } finally {
     await client.end()
   }

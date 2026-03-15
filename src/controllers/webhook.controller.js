@@ -4,12 +4,22 @@ import { recordReviewJob } from '../metrics.js'
 import { logger } from '../config/logger.js'
 import { isDbConfigured } from '../config/db.js'
 import { insertReviewEvent } from '../db/repositories/reviewEvents.js'
+import { insertWebhookEvent } from '../db/repositories/webhookEvents.js'
 import {
   detectAndValidateWebhook,
   getReviewJobId,
   getReviewEventPayload,
   isReviewableAction,
 } from '../lib/webhookProvider.js'
+
+function getWebhookEventType(provider, event) {
+  return provider === 'github' ? 'pull_request' : 'merge_request'
+}
+
+function getWebhookAction(provider, event) {
+  if (provider === 'github') return event?.action ?? null
+  return event?.object_attributes?.action ?? null
+}
 
 export const reviewPRWebhook = asyncHandler(async (req, res) => {
   let parsed
@@ -31,7 +41,23 @@ export const reviewPRWebhook = asyncHandler(async (req, res) => {
       ? event?.pull_request?.number
       : event?.object_attributes?.iid
 
-  if (!isReviewableAction(provider, event)) {
+  const queued = isReviewableAction(provider, event)
+  if (isDbConfigured()) {
+    try {
+      await insertWebhookEvent({
+        provider,
+        eventType: getWebhookEventType(provider, event),
+        repoName: String(repoLabel ?? 'unknown'),
+        action: getWebhookAction(provider, event) ?? undefined,
+        accepted: true,
+        queued,
+      })
+    } catch (err) {
+      logger.warn({ err }, 'Failed to log webhook event')
+    }
+  }
+
+  if (!queued) {
     logger.info(
       {
         provider,
@@ -42,7 +68,7 @@ export const reviewPRWebhook = asyncHandler(async (req, res) => {
       'Webhook received but action is not reviewable; event ignored',
     )
     res.status(200).json({
-      accepted: false,
+      accepted: true,
       queued: false,
       reason: 'non_reviewable_action',
       message:
@@ -99,5 +125,37 @@ export const reviewPRWebhook = asyncHandler(async (req, res) => {
     repoLabel,
     mrNumber,
     jobId: job.id,
+  })
+})
+
+/**
+ * GET /webhooks/events - List recent webhook events (auth required).
+ */
+export const listWebhookEvents = asyncHandler(async (req, res) => {
+  if (!isDbConfigured()) {
+    res.status(200).json({ success: true, data: { events: [] } })
+    return
+  }
+  const { listWebhookEvents: listEvents } = await import('../db/repositories/webhookEvents.js')
+  const limit = Math.min(parseInt(String(req.query.limit), 10) || 50, 100)
+  const events = await listEvents({ limit })
+  logger.info(
+    { limit, count: events?.length ?? 0 },
+    'Webhook events list requested',
+  )
+  res.status(200).json({
+    success: true,
+    data: {
+      events: events.map((e) => ({
+        id: e.id,
+        provider: e.provider,
+        eventType: e.eventType,
+        repoName: e.repoName,
+        action: e.action,
+        accepted: e.accepted,
+        queued: e.queued,
+        receivedAt: e.receivedAt,
+      })),
+    },
   })
 })

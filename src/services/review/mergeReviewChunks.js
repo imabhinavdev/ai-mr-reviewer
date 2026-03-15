@@ -23,6 +23,7 @@ export function mergeReviewChunks(chunkResults) {
         line: c.line,
         severity: c.severity,
         body: c.body,
+        category: c.category ?? 'other',
       })
     }
   }

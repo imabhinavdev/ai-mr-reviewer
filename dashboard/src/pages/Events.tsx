@@ -1,6 +1,20 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchEvents } from '@/api/analytics'
+import { Card, CardHeader } from '@/components/ui/Card'
+import {
+  tableClass,
+  tableHeaderCellClass,
+  tableHeaderRowClass,
+  tableBodyRowClass,
+  tableCellClass,
+} from '@/components/ui/Table'
+
+const statusColor: Record<string, string> = {
+  completed: 'text-[var(--color-success)]',
+  failed: 'text-[var(--color-error)]',
+  queued: 'text-[var(--color-text-muted)]',
+}
 
 export function Events() {
   const [page, setPage] = useState(0)
@@ -11,10 +25,14 @@ export function Events() {
     queryFn: () => fetchEvents({ limit, offset: page * limit }),
   })
 
-  if (isLoading) return <p className="text-gray-600 dark:text-gray-400">Loading events...</p>
+  if (isLoading) {
+    return (
+      <p className="text-[var(--color-text-secondary)]">Loading events...</p>
+    )
+  }
   if (error) {
     return (
-      <p className="text-red-600 dark:text-red-400">
+      <p className="text-[var(--color-error)]">
         Error: {error instanceof Error ? error.message : 'Unknown error'}
       </p>
     )
@@ -24,95 +42,100 @@ export function Events() {
   const { events, total } = data
   const totalPages = Math.ceil(total / limit) || 1
 
-  const statusClass = (status: string) => {
-    if (status === 'completed') return 'text-green-600 dark:text-green-400'
-    if (status === 'failed') return 'text-red-600 dark:text-red-400'
-    return 'text-gray-500 dark:text-gray-400'
-  }
-
   return (
-    <div>
-      <h1 className="mb-4 text-2xl font-medium text-gray-900 dark:text-gray-100">
-        Review events
-      </h1>
-      <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Provider
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Repo
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                MR #
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Author
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Status
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Comments
-              </th>
-              <th className="p-2.5 px-3 text-left font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                Created
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-2.5 px-3 border-t border-gray-200 dark:border-gray-700">
-                  No events yet
-                </td>
-              </tr>
-            ) : (
-              events.map((ev) => (
-                <tr
-                  key={ev.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-                >
-                  <td className="p-2.5 px-3">{ev.provider}</td>
-                  <td className="p-2.5 px-3">{ev.repoName}</td>
-                  <td className="p-2.5 px-3">{ev.mrNumber}</td>
-                  <td className="p-2.5 px-3">{ev.authorUsername ?? '—'}</td>
-                  <td className="p-2.5 px-3">
-                    <span className={statusClass(ev.status)}>{ev.status}</span>
-                  </td>
-                  <td className="p-2.5 px-3">{ev.commentsPostedCount}</td>
-                  <td className="p-2.5 px-3">
-                    {new Date(ev.createdAt).toLocaleString()}
-                  </td>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          Review events
+        </h1>
+        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+          Paginated list of review events
+        </p>
+      </div>
+
+      <Card padding="none">
+        <div className="p-4 sm:p-5">
+          <CardHeader
+            title="Events"
+            subtitle={`${total} total events`}
+          />
+          <div className="overflow-x-auto -mx-4 -mb-4 sm:-mx-5 sm:-mb-5">
+            <table className={tableClass}>
+              <thead>
+                <tr className={tableHeaderRowClass}>
+                  <th className={tableHeaderCellClass}>Provider</th>
+                  <th className={tableHeaderCellClass}>Repo</th>
+                  <th className={tableHeaderCellClass}>MR #</th>
+                  <th className={tableHeaderCellClass}>Author</th>
+                  <th className={tableHeaderCellClass}>Status</th>
+                  <th className={tableHeaderCellClass}>Comments</th>
+                  <th className={tableHeaderCellClass}>Created</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex items-center gap-4 mt-4">
-        <button
-          type="button"
-          disabled={page <= 0}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1.5 cursor-pointer bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-gray-100"
-        >
-          Previous
-        </button>
-        <span className="text-gray-600 dark:text-gray-400 text-sm">
-          Page {page + 1} of {totalPages} ({total} total)
-        </span>
-        <button
-          type="button"
-          disabled={page >= totalPages - 1}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1.5 cursor-pointer bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-gray-100"
-        >
-          Next
-        </button>
-      </div>
+              </thead>
+              <tbody>
+                {events.length === 0 ? (
+                  <tr className={tableBodyRowClass}>
+                    <td
+                      colSpan={7}
+                      className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                    >
+                      No events yet
+                    </td>
+                  </tr>
+                ) : (
+                  events.map((ev) => (
+                    <tr key={ev.id} className={tableBodyRowClass}>
+                      <td className={tableCellClass}>{ev.provider}</td>
+                      <td className={tableCellClass}>{ev.repoName}</td>
+                      <td className={tableCellClass}>{ev.mrNumber}</td>
+                      <td className={tableCellClass}>
+                        {ev.authorUsername ?? '—'}
+                      </td>
+                      <td className={tableCellClass}>
+                        <span
+                          className={
+                            statusColor[ev.status] ??
+                            'text-[var(--color-text-secondary)]'
+                          }
+                        >
+                          {ev.status}
+                        </span>
+                      </td>
+                      <td className={tableCellClass}>{ev.commentsPostedCount}</td>
+                      <td
+                        className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                      >
+                        {new Date(ev.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[var(--color-border)]">
+            <button
+              type="button"
+              disabled={page <= 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--color-surface)]"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-[var(--color-text-secondary)]">
+              Page {page + 1} of {totalPages} ({total} total)
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--color-surface)]"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }

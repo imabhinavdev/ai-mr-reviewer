@@ -1,10 +1,9 @@
+import { Link } from 'react-router-dom'
 import { Card, CardHeader } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/context/AuthContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useTheme } from '@/context/ThemeContext'
 
 export function Settings() {
-  const { user } = useAuth()
   const { theme, setTheme } = useTheme()
 
   return (
@@ -19,49 +18,56 @@ export function Settings() {
       </div>
 
       <div className="space-y-6 max-w-2xl">
-        <Card>
-          <CardHeader title="Profile" subtitle="Your account information" />
-          <div className="space-y-4">
-            <Input
-              label="Username"
-              value={user?.username ?? ''}
-              disabled
-              readOnly
+        <ErrorBoundary sectionLabel="Settings profile card" message="This section failed to load.">
+          <Card>
+            <CardHeader
+              title="Profile"
+              subtitle="Manage your account and security"
+              action={
+                <Link
+                  to="/profile"
+                  className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
+                >
+                  Manage your profile
+                </Link>
+              }
             />
-            <p className="text-sm text-[var(--color-text-muted)]">
-              Contact your administrator to change your username or password.
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Update your profile information, password, and view account activity.
             </p>
-          </div>
-        </Card>
+          </Card>
+        </ErrorBoundary>
 
-        <Card>
-          <CardHeader
-            title="Appearance"
-            subtitle="Customize how the dashboard looks"
-          />
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="theme"
-                checked={theme === 'dark'}
-                onChange={() => setTheme('dark')}
-                className="text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-              />
-              <span className="text-sm text-[var(--color-text)]">Dark</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="theme"
-                checked={theme === 'light'}
-                onChange={() => setTheme('light')}
-                className="text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-              />
-              <span className="text-sm text-[var(--color-text)]">Light</span>
-            </label>
-          </div>
-        </Card>
+        <ErrorBoundary sectionLabel="Settings appearance" message="This section failed to load.">
+          <Card>
+            <CardHeader
+              title="Appearance"
+              subtitle="Customize how the dashboard looks"
+            />
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="theme"
+                  checked={theme === 'dark'}
+                  onChange={() => setTheme('dark')}
+                  className="text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                <span className="text-sm text-[var(--color-text)]">Dark</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="theme"
+                  checked={theme === 'light'}
+                  onChange={() => setTheme('light')}
+                  className="text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                <span className="text-sm text-[var(--color-text)]">Light</span>
+              </label>
+            </div>
+          </Card>
+        </ErrorBoundary>
       </div>
     </div>
   )

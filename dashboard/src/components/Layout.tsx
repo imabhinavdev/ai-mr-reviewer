@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { ErrorBoundary } from './ErrorBoundary'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
@@ -29,7 +30,12 @@ export function Layout() {
 
         <main className="flex-1 overflow-auto">
           <div className="p-4 sm:p-6 lg:p-8">
-            <Outlet />
+            <ErrorBoundary
+              sectionLabel="Page"
+              message="Something went wrong while loading this page."
+            >
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

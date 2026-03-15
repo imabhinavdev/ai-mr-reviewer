@@ -130,7 +130,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
               <button
                 type="button"
-                onClick={() => { setUserMenuOpen(false); navigate('/settings'); }}
+                onClick={() => { setUserMenuOpen(false); navigate('/profile'); }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               >
                 <User className="size-4" /> Profile

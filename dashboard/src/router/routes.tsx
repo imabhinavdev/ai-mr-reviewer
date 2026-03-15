@@ -7,6 +7,15 @@ import { Analytics } from '@/pages/Analytics'
 import { Projects } from '@/pages/Projects'
 import { Integrations } from '@/pages/Integrations'
 import { Settings } from '@/pages/Settings'
+import { Users } from '@/pages/Users'
+import { UserProfile } from '@/pages/UserProfile'
+import { Reviews } from '@/pages/Reviews'
+import { ReviewDetail } from '@/pages/ReviewDetail'
+import { RepositoryDetail } from '@/pages/RepositoryDetail'
+import { Profile } from '@/pages/Profile'
+import { Rules } from '@/pages/Rules'
+import { Queue } from '@/pages/Queue'
+import { WebhookEvents } from '@/pages/WebhookEvents'
 
 export const LOGIN_PATH = '/login'
 
@@ -24,10 +33,19 @@ export const protectedRoutes: RouteConfig[] = [
     title: 'Dashboard',
     children: [
       { index: true, element: <Overview />, title: 'Overview' },
-      { path: 'analytics', element: <Analytics />, title: 'Analytics' },
-      { path: 'projects', element: <Projects />, title: 'Projects' },
+      { path: 'reviews', element: <Reviews />, title: 'Reviews' },
+      { path: 'reviews/:id', element: <ReviewDetail />, title: 'Review details' },
+      { path: 'projects', element: <Projects />, title: 'Repositories' },
+      { path: 'projects/:provider/:repoId', element: <RepositoryDetail />, title: 'Repository details' },
       { path: 'integrations', element: <Integrations />, title: 'Integrations' },
+      { path: 'profile', element: <Profile />, title: 'Profile' },
+      { path: 'analytics', element: <Analytics />, title: 'Analytics' },
+      { path: 'queue', element: <Queue />, title: 'Queue' },
+      { path: 'webhooks', element: <WebhookEvents />, title: 'Webhook events' },
+      { path: 'rules', element: <Rules />, title: 'Rules' },
       { path: 'settings', element: <Settings />, title: 'Settings' },
+      { path: 'users', element: <Users />, title: 'Users' },
+      { path: 'users/:provider/:username', element: <UserProfile />, title: 'User profile' },
     ],
   },
 ]

@@ -24,17 +24,24 @@ export function SkeletonCard() {
 }
 
 export function SkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
+  const cellPadding = 'px-4 sm:px-5'
+  const rowPadding = 'py-3'
   return (
-    <div className="space-y-2">
-      <div className="flex gap-4 pb-2 border-b border-[var(--color-border)]">
+    <div className="min-w-[560px]">
+      <div
+        className={`flex gap-4 border-b border-[var(--color-border)] ${cellPadding} ${rowPadding}`}
+      >
         {Array.from({ length: cols }).map((_, i) => (
-          <Skeleton key={i} className="h-4 flex-1" />
+          <Skeleton key={i} className="h-4 flex-1 min-w-0" />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex gap-4 py-2">
+        <div
+          key={i}
+          className={`flex gap-4 border-b border-[var(--color-border)] last:border-0 ${cellPadding} ${rowPadding}`}
+        >
           {Array.from({ length: cols }).map((_, j) => (
-            <Skeleton key={j} className="h-4 flex-1" />
+            <Skeleton key={j} className="h-4 flex-1 min-w-0" />
           ))}
         </div>
       ))}

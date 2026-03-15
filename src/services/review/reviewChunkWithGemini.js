@@ -26,6 +26,12 @@ export const reviewChunkResponseSchema = {
             enum: ['info', 'suggestion', 'warning', 'error'],
             description: 'Severity of the finding',
           },
+          category: {
+            type: 'string',
+            enum: ['error_handling', 'unused_variables', 'security', 'performance', 'other'],
+            description:
+              'Category: error_handling, unused_variables, security, performance, or other',
+          },
           body: { type: 'string', description: 'Comment text' },
         },
         required: ['file', 'line', 'severity', 'body'],
@@ -42,6 +48,7 @@ const parsedChunkSchema = z.object({
       file: z.string(),
       line: z.number().int().positive(),
       severity: z.enum(['info', 'suggestion', 'warning', 'error']),
+      category: z.enum(['error_handling', 'unused_variables', 'security', 'performance', 'other']).optional().default('other'),
       body: z.string(),
     }),
   ),
@@ -57,7 +64,7 @@ const parsedChunkSchema = z.object({
  */
 function buildChunkPrompt(chunkHunks, chunkIndex, customRules = '') {
   const baseHeader =
-    'You are a code reviewer. Review the following code changes. Each section shows Context (unchanged), Removed, and Added lines. Only report findings on ADDED lines—use the line numbers from the Added section for each file. For each finding report: file path, line number (new side), severity (error | warning | info | suggestion), and a concise comment. Prefer actionable comments.\n\n' +
+    'You are a code reviewer. Review the following code changes. Each section shows Context (unchanged), Removed, and Added lines. Only report findings on ADDED lines—use the line numbers from the Added section for each file. For each finding report: file path, line number (new side), severity (error | warning | info | suggestion), category (error_handling | unused_variables | security | performance | other), and a concise comment. Prefer actionable comments.\n\n' +
     'Keep the summary short: 4-5 sentences max for this chunk, even when the change is large. Do not write long paragraphs.\n\n' +
     'By default output only a brief summary and findings that are actual errors or serious issues (use severity "error" or "warning"). Do not use "info" or "suggestion" unless the project rules explicitly ask for them.\n\n'
   const rulesBlock =

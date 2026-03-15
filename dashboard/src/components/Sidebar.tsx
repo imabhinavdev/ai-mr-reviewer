@@ -2,10 +2,15 @@ import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
-  BarChart3,
+  ListChecks,
   FolderKanban,
   Plug,
+  BarChart3,
+  FileText,
   Settings,
+  Users,
+  Layers,
+  Webhook,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -13,9 +18,14 @@ import {
 
 const navItems: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/', label: 'Dashboard', icon: <LayoutDashboard className="size-5 shrink-0" /> },
-  { to: '/analytics', label: 'Analytics', icon: <BarChart3 className="size-5 shrink-0" /> },
-  { to: '/projects', label: 'Projects', icon: <FolderKanban className="size-5 shrink-0" /> },
+  { to: '/reviews', label: 'Reviews', icon: <ListChecks className="size-5 shrink-0" /> },
+  { to: '/projects', label: 'Repositories', icon: <FolderKanban className="size-5 shrink-0" /> },
+  { to: '/users', label: 'Users', icon: <Users className="size-5 shrink-0" /> },
+  { to: '/queue', label: 'Queue', icon: <Layers className="size-5 shrink-0" /> },
+  { to: '/webhooks', label: 'Webhooks', icon: <Webhook className="size-5 shrink-0" /> },
   { to: '/integrations', label: 'Integrations', icon: <Plug className="size-5 shrink-0" /> },
+  { to: '/analytics', label: 'Analytics', icon: <BarChart3 className="size-5 shrink-0" /> },
+  { to: '/rules', label: 'Rules', icon: <FileText className="size-5 shrink-0" /> },
   { to: '/settings', label: 'Settings', icon: <Settings className="size-5 shrink-0" /> },
 ]
 
@@ -36,7 +46,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         <NavLink
           key={to}
           to={to}
-          end={to === '/'}
+          end={to === '/' || to === '/reviews'}
           onClick={onMobileClose}
           className={({ isActive }) =>
             `flex items-center rounded-lg py-2.5 text-sm font-medium transition-colors duration-200 ${
