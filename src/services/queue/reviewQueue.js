@@ -8,6 +8,8 @@ import { runReviewPRJob } from '../../jobs/reviewPRJob.js'
 import { logger } from '../../config/logger.js'
 import { recordReviewJob } from '../../metrics.js'
 import { env } from '../../config/env.js'
+import { isDbConfigured } from '../../config/db.js'
+import { updateReviewEventByBullmqJobId } from '../../db/repositories/reviewEvents.js'
 
 const QUEUE_NAME = 'review-pr'
 
@@ -55,10 +57,23 @@ export function startReviewWorker() {
       )
 
       try {
-        await runReviewPRJob(event, { jobId: job.id })
+        const result = await runReviewPRJob(event, { jobId: job.id })
         recordReviewJob('completed', (Date.now() - start) / 1000)
+        if (isDbConfigured() && result !== undefined) {
+          await updateReviewEventByBullmqJobId(job.id, {
+            status: 'completed',
+            commentsPostedCount: result.commentsPosted ?? 0,
+          })
+        }
       } catch (err) {
         recordReviewJob('failed', (Date.now() - start) / 1000)
+        if (isDbConfigured()) {
+          try {
+            await updateReviewEventByBullmqJobId(job.id, { status: 'failed' })
+          } catch (updateErr) {
+            logger.warn({ err: updateErr, jobId: job.id }, 'Failed to update review event status to failed')
+          }
+        }
         throw err
       }
     },

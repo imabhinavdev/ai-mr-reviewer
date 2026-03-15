@@ -31,6 +31,14 @@ const envSchema = z.object({
   REDIS_URL: z.string().default('redis://localhost:6379'),
   /** Concurrency for the review worker (BullMQ). */
   REVIEW_WORKER_CONCURRENCY: z.coerce.number().int().positive().default(1),
+  /** PostgreSQL connection URL for analytics and dashboard. Required for auth/dashboard. */
+  DATABASE_URL: z.string().optional(),
+  /** Admin username for dashboard login. Required for auth. */
+  ADMIN_USERNAME: z.string().optional(),
+  /** Admin password for dashboard login. Required for auth. */
+  ADMIN_PASSWORD: z.string().optional(),
+  /** Secret for signing JWT tokens. Min 32 chars. Required for auth. */
+  JWT_SECRET: z.string().min(32).optional(),
 })
 
 export const env = envSchema.parse(process.env)

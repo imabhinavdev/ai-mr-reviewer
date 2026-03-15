@@ -27,6 +27,7 @@ function rulesAllowInfoOrSuggestion(rules) {
  * Run the full PR/MR review pipeline in the background.
  * @param {object} event - Webhook payload (GitHub pull_request or GitLab merge_request)
  * @param {{ jobId?: string }} [jobMeta] - Optional job metadata from the queue worker
+ * @returns {Promise<{ commentsPosted: number } | undefined>} Comments posted count on success; undefined when skipped
  */
 export async function runReviewPRJob(event, jobMeta = {}) {
   const provider = detectProviderFromEvent(event)
@@ -35,7 +36,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       { event: !!event, jobId: jobMeta.jobId },
       'Review job skipped: unknown webhook payload',
     )
-    return
+    return undefined
   }
 
   const repoLabel =
@@ -54,7 +55,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       { provider, repoLabel, mrNumber, jobId: jobMeta.jobId, jobKey },
       'Review job skipped: missing repo or MR/PR identifier',
     )
-    return
+    return undefined
   }
 
   try {
@@ -94,7 +95,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
         },
         'No reviewable hunks; skipping review (nothing commented)',
       )
-      return
+      return { commentsPosted: 0 }
     }
     const chunkResults = []
 
@@ -139,7 +140,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
         },
         'No new findings; skipping post (all comments already exist; nothing commented)',
       )
-      return
+      return { commentsPosted: 0 }
     }
 
     logger.info(
@@ -176,6 +177,7 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       },
       'Review posted successfully (summary + line comments)',
     )
+    return { commentsPosted: commentsToPost.length }
   } catch (err) {
     logger.error(
       {

@@ -55,6 +55,7 @@ You need to provide:
 - **Default: summary + errors** – By default the AI outputs only a summary and error/warning-level findings. Info and suggestions are included only when you request them in `.nirik/rules.md`.
 - **Background jobs** – Uses Redis (BullMQ) so the webhook responds with `202 Accepted` immediately and the review runs asynchronously.
 - **Metrics** – Prometheus-style metrics at `GET /metrics` for monitoring.
+- **Dashboard** – Optional React dashboard for analytics (MRs, projects, users, activity over time). Requires PostgreSQL and admin credentials (see [Dashboard and analytics](#dashboard-and-analytics)).
 - **Docker** – Run the app and Redis with `docker compose up`.
 
 ---
@@ -63,6 +64,7 @@ You need to provide:
 
 - **Node.js** ≥ 20 (if running without Docker).
 - **Redis** – Required for the job queue. Use a local Redis, a cloud Redis, or the Redis service in Docker Compose.
+- **PostgreSQL** – Optional; required only for the [dashboard and analytics](#dashboard-and-analytics) feature.
 - **API keys**:
   - At least one **AI** key: [Google AI Studio](https://aistudio.google.com/apikey) (Gemini) and/or [OpenAI](https://platform.openai.com/api-keys) (OpenAI).
   - At least one **Git** token: [GitHub Personal Access Token](https://github.com/settings/tokens) (scope `repo`) and/or [GitLab Personal Access Token](https://gitlab.com/-/user_settings/personal_access_tokens) (scope `api`).
@@ -105,7 +107,7 @@ If "quick start" takes more than 10 minutes, you are officially allowed to blame
    ```
    Server is running on http://localhost:3000
    Webhook URL (GitHub & GitLab): http://localhost:3000/api/v1/webhooks/review-pr
-   Other endpoints: GET / (health), GET /metrics (Prometheus)
+   Other endpoints: GET /health, GET /metrics (Prometheus)
    ```
 
    Use that **Webhook URL** when configuring the webhook in GitHub or GitLab (see [Setting up webhooks](#setting-up-webhooks-github--gitlab)).
@@ -169,6 +171,38 @@ It is happiest when your server has stable internet, stable clocks, and unstable
 
 ---
 
+## Dashboard and analytics
+
+An optional **React dashboard** shows analytics for review events: total MRs, by project, by user, and activity over time. It is protected by a single admin account configured via environment variables.
+
+### Requirements
+
+- **PostgreSQL** – Set `DATABASE_URL` (e.g. `postgresql://user:password@localhost:5432/nirik`). Run migrations once: `pnpm run db:migrate`.
+- **Admin auth** – Set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `JWT_SECRET` (min 32 characters) in `.env`.
+
+### Running the dashboard
+
+- **Development** – From the repo root, run the API and the dashboard in two terminals:
+  - `pnpm run dev:server` (API on port 3000)
+  - `pnpm run dashboard:dev` (Vite dev server on port 5173; proxies `/api` to the API)
+  - Open http://localhost:5173 and sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
+- **Production** – Build the dashboard and serve it from the same Express app:
+  - `pnpm run dashboard:build`
+  - Start the API with `pnpm start`. If `dashboard/dist` exists, the app serves the SPA at `/` and the health check is at `GET /health`.
+
+### API (all require authentication)
+
+- `POST /api/v1/auth/login` – Body `{ username, password }`. Returns a JWT (and sets an httpOnly cookie).
+- `GET /api/v1/auth/me` – Returns the current user (requires valid JWT).
+- `POST /api/v1/auth/logout` – Clears the auth cookie.
+- `GET /api/v1/analytics/overview` – Aggregates (total reviews, by status, comments, last 7/30 days).
+- `GET /api/v1/analytics/events` – List review events (query: `provider`, `repo`, `status`, `from`, `to`, `limit`, `offset`).
+- `GET /api/v1/analytics/projects` – List projects with MR and comment counts.
+- `GET /api/v1/analytics/users` – List users (authors) with MR and comment counts.
+- `GET /api/v1/analytics/activity` – Time-bucketed counts (query: `from`, `to`, `bucket=day|week`).
+
+---
+
 ## Project website (GitHub Pages)
 
 This repo includes a one-page landing site in `docs/` and a Pages workflow at `.github/workflows/deploy-pages.yml`.
@@ -205,7 +239,14 @@ All configuration is via environment variables (e.g. in `.env`).
 | `GITHUB_WEBHOOK_SECRET`                 | No         | Secret you set in GitHub webhook settings. App verifies `X-Hub-Signature-256`. If set, requests without a valid signature are rejected.                                                    |
 | `GITLAB_WEBHOOK_TOKEN`                  | No         | Token you set in GitLab webhook settings. App verifies `X-Gitlab-Token`. If set, requests without the correct token are rejected.                                                          |
 | `METRICS_TOKEN`                         | Yes        | Token required for `/metrics` access. Send as `Authorization: Bearer <METRICS_TOKEN>`.                                                                                                     |
+| **Dashboard and analytics**             |            |                                                                                                                                                                                            |
+| `DATABASE_URL`                          | For dashboard | PostgreSQL connection URL. When set, review events are stored and analytics API is available.                               |
+| `ADMIN_USERNAME`                        | For dashboard | Admin username for dashboard login.                                                                                         |
+| `ADMIN_PASSWORD`                        | For dashboard | Admin password for dashboard login.                                                                                         |
+| `JWT_SECRET`                            | For dashboard | Secret for signing JWT tokens (min 32 characters). Required for auth.                                                       |
 | **Other**                               |            |                                                                                                                                                                                            |
+| `REDIS_URL`                             | No         | Redis connection URL (default: `redis://localhost:6379`).                                                                   |
+| `REVIEW_WORKER_CONCURRENCY`             | No         | Concurrency for the review worker (default: `1`).                                                                          |
 | `LOG_LEVEL`                             | No         | Log level: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, or `silent`.                                                                                                                |
 
 ---
@@ -215,7 +256,7 @@ All configuration is via environment variables (e.g. in `.env`).
 When the server starts, it logs the URLs you need:
 
 - **Webhook URL** – Use this in GitHub or GitLab as the webhook “Payload URL”.
-- **Health** – `GET /` for a simple health check.
+- **Health** – `GET /health` for a simple health check (or `GET /` when the dashboard is not built).
 - **Metrics** – `GET /metrics` for Prometheus (requires `Authorization: Bearer <METRICS_TOKEN>`).
 
 To see the **correct public webhook URL** (e.g. when using a reverse proxy or a domain), set **`BASE_URL`** in your env:
@@ -289,7 +330,7 @@ The app can verify that webhook requests really come from GitHub or GitLab.
 
 | Method | Path                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET`  | `/`                          | Health check. Returns JSON `{ success: true, message: "Hello World", requestId }`.                                                                                                                                                                                                                                                                                                                                                               |
+| `GET`  | `/health`                    | Health check. Returns JSON `{ success: true, message: "Hello World", requestId }`. (When the dashboard is built, `GET /` serves the SPA.)                                                                                                                                                                                                                                                                                                        |
 | `POST` | `/api/v1/webhooks/review-pr` | **Webhook** for GitHub (pull_request) or GitLab (merge_request). Only **opened** and **synchronize** (GitHub) or **open**, **reopen**, and **update** (GitLab) trigger a review; other actions return `200` with `accepted: false`. Returns `202` and `{ accepted: true, message: "Review started", provider }` when the job is enqueued. Returns `401` if verification is enabled and invalid; `400` if the payload is not a valid PR/MR event. |
 | `GET`  | `/metrics`                   | Prometheus-format metrics. Requires `Authorization: Bearer <METRICS_TOKEN>`. Returns `401` for missing or invalid token.                                                                                                                                                                                                                                                                                                                         |
 

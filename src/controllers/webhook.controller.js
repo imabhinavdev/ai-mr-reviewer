@@ -2,9 +2,12 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { getReviewQueue } from '../services/queue/reviewQueue.js'
 import { recordReviewJob } from '../metrics.js'
 import { logger } from '../config/logger.js'
+import { isDbConfigured } from '../config/db.js'
+import { insertReviewEvent } from '../db/repositories/reviewEvents.js'
 import {
   detectAndValidateWebhook,
   getReviewJobId,
+  getReviewEventPayload,
   isReviewableAction,
 } from '../lib/webhookProvider.js'
 
@@ -55,6 +58,26 @@ export const reviewPRWebhook = asyncHandler(async (req, res) => {
   const jobId = `${baseId}-${Date.now()}`
   const queue = getReviewQueue()
   const job = await queue.add('review', event, { jobId })
+
+  if (isDbConfigured()) {
+    try {
+      const { repoId, repoName, authorUsername } = getReviewEventPayload(
+        provider,
+        event,
+      )
+      await insertReviewEvent({
+        provider,
+        repoId,
+        repoName,
+        mrNumber,
+        authorUsername,
+        bullmqJobId: job.id,
+      })
+    } catch (err) {
+      logger.warn({ err, jobId: job.id }, 'Failed to persist review event for analytics')
+    }
+  }
+
   recordReviewJob('enqueued')
   logger.info(
     {
