@@ -13,28 +13,20 @@ export const LOGIN_PATH = '/login'
 /** Public routes: no auth required. Redirect to dashboard if already logged in is handled in Login/Signup. */
 export const publicRoutes: RouteConfig[] = [
   { path: '/login', element: <Login />, title: 'Login' },
-  {
-    path: '/forgot-password',
-    element: <ForgotPassword />,
-    title: 'Forgot password',
-  },
+  { path: '/forgot-password', element: <ForgotPassword />, title: 'Forgot password' },
 ]
 
-/** Protected routes: require auth. Redirect to login when not authorized. */
+/** Protected routes: require auth. Redirect to login when not authorized. Uses `layout` so the router wraps with ProtectedRoute and renders child routes inside Layout's Outlet. */
 export const protectedRoutes: RouteConfig[] = [
   {
     path: '/',
-    element: <Layout />,
+    layout: Layout,
     title: 'Dashboard',
     children: [
       { index: true, element: <Overview />, title: 'Overview' },
       { path: 'analytics', element: <Analytics />, title: 'Analytics' },
       { path: 'projects', element: <Projects />, title: 'Projects' },
-      {
-        path: 'integrations',
-        element: <Integrations />,
-        title: 'Integrations',
-      },
+      { path: 'integrations', element: <Integrations />, title: 'Integrations' },
       { path: 'settings', element: <Settings />, title: 'Settings' },
     ],
   },
@@ -43,7 +35,8 @@ export const protectedRoutes: RouteConfig[] = [
 export interface RouteConfig {
   path?: string
   index?: boolean
-  element: ReactNode
+  /** Omit when using layout + children (protected layout route). */
+  element?: ReactNode
   title?: string
   layout?: React.ComponentType
   children?: RouteConfig[]
