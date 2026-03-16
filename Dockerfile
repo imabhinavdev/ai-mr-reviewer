@@ -4,14 +4,15 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json ./
+COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --ignore-scripts
 
 FROM base AS dashboard
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --ignore-scripts
+COPY pnpm-lock.yaml* ./
+COPY dashboard/package.json ./dashboard/package.json
+RUN pnpm --prefix dashboard install --ignore-scripts
 COPY dashboard ./dashboard
-RUN pnpm run dashboard:build
+RUN pnpm --prefix dashboard build
 
 FROM base AS runner
 ENV NODE_ENV=production
