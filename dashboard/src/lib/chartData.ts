@@ -35,7 +35,11 @@ export function normalizeActivityData(raw: unknown): ActivityChartPoint[] {
                 : null
             : null
       const count =
-        d.count != null ? Number(d.count) : d.total != null ? Number(d.total) : 0
+        d.count != null
+          ? Number(d.count)
+          : d.total != null
+            ? Number(d.total)
+            : 0
       if (date == null || Number.isNaN(count)) return null
       return { date, count: Math.max(0, count) }
     })

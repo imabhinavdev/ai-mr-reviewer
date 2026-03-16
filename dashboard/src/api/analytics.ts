@@ -74,7 +74,9 @@ export interface EventsParams {
   to?: string
 }
 
-export async function fetchEvents(params: EventsParams = {}): Promise<EventsResponse> {
+export async function fetchEvents(
+  params: EventsParams = {},
+): Promise<EventsResponse> {
   const search: Record<string, string> = {}
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== '') search[k] = String(v)
@@ -181,7 +183,10 @@ export interface UserProfileData {
   issuesActivity?: ActivityPoint[]
 }
 
-export async function fetchUserProfile(provider: string, username: string): Promise<UserProfileData> {
+export async function fetchUserProfile(
+  provider: string,
+  username: string,
+): Promise<UserProfileData> {
   const encoded = `${encodeURIComponent(provider)}/${encodeURIComponent(username)}`
   const res = await fetch(`${API_BASE}/api/v1/analytics/users/${encoded}`, {
     headers: headers(),
@@ -192,7 +197,9 @@ export async function fetchUserProfile(provider: string, username: string): Prom
   return json.data
 }
 
-export async function fetchActivity(params: ActivityParams = {}): Promise<ActivityPoint[]> {
+export async function fetchActivity(
+  params: ActivityParams = {},
+): Promise<ActivityPoint[]> {
   const search: Record<string, string> = {}
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== '') search[k] = String(v)
@@ -206,7 +213,11 @@ export async function fetchActivity(params: ActivityParams = {}): Promise<Activi
   const json = (await res.json()) as { data?: ActivityPoint[] }
   const data = json.data
   if (!Array.isArray(data)) {
-    if (import.meta.env.DEV) console.warn('[analytics] Activity response data is not an array:', typeof data)
+    if (import.meta.env.DEV)
+      console.warn(
+        '[analytics] Activity response data is not an array:',
+        typeof data,
+      )
     return []
   }
   return data
@@ -228,12 +239,18 @@ export function repoPath(provider: string, repoId: string): string {
   return `${encodeURIComponent(provider)}/${encodeURIComponent(repoId)}`
 }
 
-export async function fetchRepoOverview(provider: string, repoId: string): Promise<RepoOverviewData> {
+export async function fetchRepoOverview(
+  provider: string,
+  repoId: string,
+): Promise<RepoOverviewData> {
   const path = repoPath(provider, repoId)
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/overview`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/overview`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) throw new Error('Failed to fetch repo overview')
   const json = (await res.json()) as { data: RepoOverviewData }
   return json.data
@@ -242,7 +259,7 @@ export async function fetchRepoOverview(provider: string, repoId: string): Promi
 export async function fetchRepoActivity(
   provider: string,
   repoId: string,
-  params: ActivityParams = {}
+  params: ActivityParams = {},
 ): Promise<ActivityPoint[]> {
   const path = repoPath(provider, repoId)
   const search: Record<string, string> = {}
@@ -250,15 +267,22 @@ export async function fetchRepoActivity(
     if (v !== undefined && v !== '') search[k] = String(v)
   }
   const q = new URLSearchParams(search).toString()
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/activity?${q}`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/activity?${q}`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) throw new Error('Failed to fetch repo activity')
   const json = (await res.json()) as { data?: ActivityPoint[] }
   const data = json.data
   if (!Array.isArray(data)) {
-    if (import.meta.env.DEV) console.warn('[analytics] Repo activity response data is not an array:', typeof data)
+    if (import.meta.env.DEV)
+      console.warn(
+        '[analytics] Repo activity response data is not an array:',
+        typeof data,
+      )
     return []
   }
   return data
@@ -273,13 +297,16 @@ export interface RepoContributor {
 
 export async function fetchRepoContributors(
   provider: string,
-  repoId: string
+  repoId: string,
 ): Promise<RepoContributor[]> {
   const path = repoPath(provider, repoId)
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/contributors`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/contributors`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) throw new Error('Failed to fetch repo contributors')
   const json = (await res.json()) as { data: RepoContributor[] }
   return json.data
@@ -293,13 +320,16 @@ export interface RepoIssueSummary {
 
 export async function fetchRepoIssueSummary(
   provider: string,
-  repoId: string
+  repoId: string,
 ): Promise<RepoIssueSummary> {
   const path = repoPath(provider, repoId)
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/issues`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/issues`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) throw new Error('Failed to fetch repo issue summary')
   const json = (await res.json()) as { data: RepoIssueSummary }
   return json.data
@@ -312,13 +342,16 @@ export interface RepoHealthScore {
 
 export async function fetchRepoHealthScore(
   provider: string,
-  repoId: string
+  repoId: string,
 ): Promise<RepoHealthScore> {
   const path = repoPath(provider, repoId)
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/health`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/health`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) throw new Error('Failed to fetch repo health score')
   const json = (await res.json()) as { data: RepoHealthScore }
   return json.data
@@ -330,13 +363,16 @@ export interface RepoRulesData {
 
 export async function fetchRepoRules(
   provider: string,
-  repoId: string
+  repoId: string,
 ): Promise<RepoRulesData | null> {
   const path = repoPath(provider, repoId)
-  const res = await fetch(`${API_BASE}/api/v1/analytics/repositories/${path}/rules`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/repositories/${path}/rules`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (res.status === 404) return null
   if (!res.ok) {
     const msg = (await res.json()).catch(() => ({})) as { message?: string }
@@ -380,23 +416,35 @@ export async function fetchReposHealthList(): Promise<RepoHealthItem[]> {
   return json.data
 }
 
-export async function fetchDetectionCategories(): Promise<Record<string, number>> {
-  const res = await fetch(`${API_BASE}/api/v1/analytics/insights/detection-categories`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+export async function fetchDetectionCategories(): Promise<
+  Record<string, number>
+> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/insights/detection-categories`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) return {}
   const json = (await res.json()) as { data: Record<string, number> }
   return json.data ?? {}
 }
 
-export async function fetchCodeQualityInsights(): Promise<{ categories: Record<string, number> }> {
-  const res = await fetch(`${API_BASE}/api/v1/analytics/insights/code-quality`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+export async function fetchCodeQualityInsights(): Promise<{
+  categories: Record<string, number>
+}> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/insights/code-quality`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) return { categories: {} }
-  const json = (await res.json()) as { data: { categories: Record<string, number> } }
+  const json = (await res.json()) as {
+    data: { categories: Record<string, number> }
+  }
   return json.data ?? { categories: {} }
 }
 
@@ -414,7 +462,10 @@ export async function fetchPrComplexity(params?: {
   const url = new URL(`${API_BASE}/api/v1/analytics/pr-complexity`)
   if (params?.provider) url.searchParams.set('provider', params.provider)
   if (params?.repoId) url.searchParams.set('repoId', params.repoId)
-  const res = await fetch(url.toString(), { headers: headers(), credentials: 'include' })
+  const res = await fetch(url.toString(), {
+    headers: headers(),
+    credentials: 'include',
+  })
   if (!res.ok) throw new Error('Failed to fetch PR complexity')
   const json = (await res.json()) as { data: PrComplexityData }
   return json.data
@@ -432,27 +483,37 @@ export interface ReviewCompareEvent {
 
 export async function fetchReviewCompare(
   id1: number,
-  id2: number
+  id2: number,
 ): Promise<{ event1: ReviewCompareEvent; event2: ReviewCompareEvent }> {
   const url = new URL(`${API_BASE}/api/v1/analytics/reviews/compare`)
   url.searchParams.set('id1', String(id1))
   url.searchParams.set('id2', String(id2))
-  const res = await fetch(url.toString(), { headers: headers(), credentials: 'include' })
+  const res = await fetch(url.toString(), {
+    headers: headers(),
+    credentials: 'include',
+  })
   if (!res.ok) throw new Error('Failed to fetch review comparison')
-  const json = (await res.json()) as { data: { event1: ReviewCompareEvent; event2: ReviewCompareEvent } }
+  const json = (await res.json()) as {
+    data: { event1: ReviewCompareEvent; event2: ReviewCompareEvent }
+  }
   return json.data
 }
 
 export async function fetchUserInsights(
   provider: string,
-  username: string
+  username: string,
 ): Promise<{ categories: Record<string, number> }> {
   const encoded = `${encodeURIComponent(provider)}/${encodeURIComponent(username)}`
-  const res = await fetch(`${API_BASE}/api/v1/analytics/users/${encoded}/insights`, {
-    headers: headers(),
-    credentials: 'include',
-  })
+  const res = await fetch(
+    `${API_BASE}/api/v1/analytics/users/${encoded}/insights`,
+    {
+      headers: headers(),
+      credentials: 'include',
+    },
+  )
   if (!res.ok) return { categories: {} }
-  const json = (await res.json()) as { data: { categories: Record<string, number> } }
+  const json = (await res.json()) as {
+    data: { categories: Record<string, number> }
+  }
   return json.data ?? { categories: {} }
 }

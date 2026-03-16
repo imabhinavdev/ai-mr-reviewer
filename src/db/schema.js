@@ -1,11 +1,21 @@
-import { pgTable, serial, text, integer, timestamp, boolean, real } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  timestamp,
+  boolean,
+  real,
+} from 'drizzle-orm/pg-core'
 
 export const integrations = pgTable('integrations', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   type: text('type').notNull().unique(),
   configured: boolean('configured').notNull().default(false),
-  syncedAt: timestamp('synced_at', { withTimezone: true }).notNull().defaultNow(),
+  syncedAt: timestamp('synced_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 })
 
 export const reviewEvents = pgTable('review_events', {
@@ -28,8 +38,12 @@ export const reviewEvents = pgTable('review_events', {
   diffFetchedAt: timestamp('diff_fetched_at', { withTimezone: true }),
   aiStartedAt: timestamp('ai_started_at', { withTimezone: true }),
   commentsPostedAt: timestamp('comments_posted_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 })
 
 export const webhookEvents = pgTable('webhook_events', {
@@ -40,7 +54,9 @@ export const webhookEvents = pgTable('webhook_events', {
   action: text('action'),
   accepted: boolean('accepted').notNull().default(true),
   queued: boolean('queued').notNull().default(false),
-  receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+  receivedAt: timestamp('received_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 })
 
 export const reviewFindings = pgTable('review_findings', {

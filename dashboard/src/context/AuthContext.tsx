@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react'
 import { me, type User } from '../api/auth'
 
 interface AuthContextValue {
@@ -25,7 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearUser = () => setUser(null)
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUserFromLogin, clearUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, setUserFromLogin, clearUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

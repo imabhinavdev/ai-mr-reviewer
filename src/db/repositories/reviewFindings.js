@@ -95,7 +95,11 @@ export async function getFindingsByReviewEventIds(reviewEventIds) {
   for (const r of rows) {
     const id = r.reviewEventId
     if (!byEvent[id]) byEvent[id] = []
-    byEvent[id].push({ category: r.category, severity: r.severity, count: r.count })
+    byEvent[id].push({
+      category: r.category,
+      severity: r.severity,
+      count: r.count,
+    })
   }
   return byEvent
 }

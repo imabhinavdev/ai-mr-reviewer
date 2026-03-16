@@ -18,7 +18,10 @@ export function Settings() {
       </div>
 
       <div className="space-y-6 max-w-2xl">
-        <ErrorBoundary sectionLabel="Settings profile card" message="This section failed to load.">
+        <ErrorBoundary
+          sectionLabel="Settings profile card"
+          message="This section failed to load."
+        >
           <Card>
             <CardHeader
               title="Profile"
@@ -33,12 +36,16 @@ export function Settings() {
               }
             />
             <p className="text-sm text-[var(--color-text-secondary)]">
-              Update your profile information, password, and view account activity.
+              Update your profile information, password, and view account
+              activity.
             </p>
           </Card>
         </ErrorBoundary>
 
-        <ErrorBoundary sectionLabel="Settings appearance" message="This section failed to load.">
+        <ErrorBoundary
+          sectionLabel="Settings appearance"
+          message="This section failed to load."
+        >
           <Card>
             <CardHeader
               title="Appearance"

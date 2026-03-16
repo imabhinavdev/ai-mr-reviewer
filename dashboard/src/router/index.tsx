@@ -32,8 +32,12 @@ export function AppRouter() {
               child.index ? (
                 <Route key="index" index element={child.element} />
               ) : (
-                <Route key={child.path} path={child.path} element={child.element} />
-              )
+                <Route
+                  key={child.path}
+                  path={child.path}
+                  element={child.element}
+                />
+              ),
             )}
           </Route>
         )

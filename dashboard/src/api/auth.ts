@@ -16,7 +16,10 @@ export function setToken(token: string | null): void {
   else localStorage.removeItem('dashboard_token')
 }
 
-export async function login(username: string, password: string): Promise<LoginResponse> {
+export async function login(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -64,7 +67,9 @@ export interface UpdateProfilePayload {
   username?: string
 }
 
-export async function updateProfile(payload: UpdateProfilePayload): Promise<User> {
+export async function updateProfile(
+  payload: UpdateProfilePayload,
+): Promise<User> {
   const token = getToken()
   const res = await fetch(`${API_BASE}/api/v1/auth/profile`, {
     method: 'PATCH',
@@ -76,7 +81,9 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<User
     body: JSON.stringify(payload),
   })
   if (res.status === 404 || res.status === 501) {
-    throw new Error('Profile editing is not available. Contact your administrator.')
+    throw new Error(
+      'Profile editing is not available. Contact your administrator.',
+    )
   }
   if (!res.ok) {
     const err = (await res.json()) as { message?: string }
@@ -86,7 +93,10 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<User
   return data.user
 }
 
-export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
   const token = getToken()
   const res = await fetch(`${API_BASE}/api/v1/auth/change-password`, {
     method: 'POST',
@@ -98,7 +108,9 @@ export async function changePassword(currentPassword: string, newPassword: strin
     body: JSON.stringify({ currentPassword, newPassword }),
   })
   if (res.status === 404 || res.status === 501) {
-    throw new Error('Password change is not available. Contact your administrator.')
+    throw new Error(
+      'Password change is not available. Contact your administrator.',
+    )
   }
   if (!res.ok) {
     const err = (await res.json()) as { message?: string }

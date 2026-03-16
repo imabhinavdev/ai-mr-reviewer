@@ -29,7 +29,12 @@ function formatTime(iso: string | null | undefined): string {
 }
 
 export function WebhookEvents() {
-  const { data: events, isLoading, error, refetch } = useQuery({
+  const {
+    data: events,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['webhook-events'],
     queryFn: () => fetchWebhookEvents({ limit: 50 }),
     refetchInterval: 15000,
@@ -42,7 +47,9 @@ export function WebhookEvents() {
     return (
       <div className="rounded-lg border border-[var(--color-error)]/50 bg-[var(--color-error-muted)] px-4 py-4 text-sm text-[var(--color-error)]">
         Unable to load data at the moment.{' '}
-        {error instanceof Error ? error.message : 'Failed to load webhook events.'}
+        {error instanceof Error
+          ? error.message
+          : 'Failed to load webhook events.'}
         <button
           type="button"
           onClick={() => refetch()}
@@ -62,7 +69,9 @@ export function WebhookEvents() {
     >
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text)]">Webhook Events</h1>
+          <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+            Webhook Events
+          </h1>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
             Recent incoming webhook events. Useful for troubleshooting.
           </p>
@@ -119,19 +128,29 @@ export function WebhookEvents() {
                           <td className={tableCellClass}>{e?.action ?? '—'}</td>
                           <td className={tableCellClass}>
                             {e?.accepted ? (
-                              <span className="text-[var(--color-success)]">Yes</span>
+                              <span className="text-[var(--color-success)]">
+                                Yes
+                              </span>
                             ) : (
-                              <span className="text-[var(--color-text-muted)]">No</span>
+                              <span className="text-[var(--color-text-muted)]">
+                                No
+                              </span>
                             )}
                           </td>
                           <td className={tableCellClass}>
                             {e?.queued ? (
-                              <span className="text-[var(--color-success)]">Yes</span>
+                              <span className="text-[var(--color-success)]">
+                                Yes
+                              </span>
                             ) : (
-                              <span className="text-[var(--color-text-muted)]">No</span>
+                              <span className="text-[var(--color-text-muted)]">
+                                No
+                              </span>
                             )}
                           </td>
-                          <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
+                          <td
+                            className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                          >
                             {formatTime(e?.receivedAt)}
                           </td>
                         </tr>

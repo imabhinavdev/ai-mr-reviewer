@@ -7,7 +7,12 @@ import { logger } from '../config/logger.js'
 
 function getRepoLabelFromJob(job) {
   const data = job?.data ?? {}
-  return data.repository?.full_name ?? data.project?.path_with_namespace ?? data.project_id ?? null
+  return (
+    data.repository?.full_name ??
+    data.project?.path_with_namespace ??
+    data.project_id ??
+    null
+  )
 }
 
 /**

@@ -22,7 +22,11 @@ export const LOGIN_PATH = '/login'
 /** Public routes: no auth required. Redirect to dashboard if already logged in is handled in Login/Signup. */
 export const publicRoutes: RouteConfig[] = [
   { path: '/login', element: <Login />, title: 'Login' },
-  { path: '/forgot-password', element: <ForgotPassword />, title: 'Forgot password' },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+    title: 'Forgot password',
+  },
 ]
 
 /** Protected routes: require auth. Redirect to login when not authorized. Uses `layout` so the router wraps with ProtectedRoute and renders child routes inside Layout's Outlet. */
@@ -34,10 +38,22 @@ export const protectedRoutes: RouteConfig[] = [
     children: [
       { index: true, element: <Overview />, title: 'Overview' },
       { path: 'reviews', element: <Reviews />, title: 'Reviews' },
-      { path: 'reviews/:id', element: <ReviewDetail />, title: 'Review details' },
+      {
+        path: 'reviews/:id',
+        element: <ReviewDetail />,
+        title: 'Review details',
+      },
       { path: 'projects', element: <Projects />, title: 'Repositories' },
-      { path: 'projects/:provider/:repoId', element: <RepositoryDetail />, title: 'Repository details' },
-      { path: 'integrations', element: <Integrations />, title: 'Integrations' },
+      {
+        path: 'projects/:provider/:repoId',
+        element: <RepositoryDetail />,
+        title: 'Repository details',
+      },
+      {
+        path: 'integrations',
+        element: <Integrations />,
+        title: 'Integrations',
+      },
       { path: 'profile', element: <Profile />, title: 'Profile' },
       { path: 'analytics', element: <Analytics />, title: 'Analytics' },
       { path: 'queue', element: <Queue />, title: 'Queue' },
@@ -45,7 +61,11 @@ export const protectedRoutes: RouteConfig[] = [
       { path: 'rules', element: <Rules />, title: 'Rules' },
       { path: 'settings', element: <Settings />, title: 'Settings' },
       { path: 'users', element: <Users />, title: 'Users' },
-      { path: 'users/:provider/:username', element: <UserProfile />, title: 'User profile' },
+      {
+        path: 'users/:provider/:username',
+        element: <UserProfile />,
+        title: 'User profile',
+      },
     ],
   },
 ]

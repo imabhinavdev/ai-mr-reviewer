@@ -38,7 +38,9 @@ export function Projects() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text)]">Projects</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          Projects
+        </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
           Repositories with review activity
         </p>
@@ -68,7 +70,8 @@ export function Projects() {
                     {h?.repoName ?? '—'}
                   </Link>
                   <span className="shrink-0 text-lg font-semibold text-[var(--color-text)]">
-                    {typeof h?.score === 'number' ? h.score.toFixed(1) : '—'} / 10
+                    {typeof h?.score === 'number' ? h.score.toFixed(1) : '—'} /
+                    10
                   </span>
                 </li>
               ))}
@@ -86,7 +89,9 @@ export function Projects() {
           <div className="p-4 sm:p-5">
             <CardHeader
               title="Repositories"
-              subtitle={Array.isArray(data) ? `${data.length} projects` : undefined}
+              subtitle={
+                Array.isArray(data) ? `${data.length} projects` : undefined
+              }
             />
             {isLoading && (
               <div className="overflow-x-auto">
@@ -121,10 +126,16 @@ export function Projects() {
                                 key={`${row?.provider}-${row?.repoId}-${i}`}
                                 className={tableBodyRowClass}
                               >
-                                <td className={tableCellClass} data-label="Provider">
+                                <td
+                                  className={tableCellClass}
+                                  data-label="Provider"
+                                >
                                   {row?.provider ?? '—'}
                                 </td>
-                                <td className={tableCellClass} data-label="Repo">
+                                <td
+                                  className={tableCellClass}
+                                  data-label="Repo"
+                                >
                                   <Link
                                     to={`/projects/${repoPath(row?.provider ?? '', row?.repoId ?? '')}`}
                                     className="font-medium text-[var(--color-primary)] hover:underline"
@@ -132,10 +143,16 @@ export function Projects() {
                                     {row?.repoName ?? '—'}
                                   </Link>
                                 </td>
-                                <td className={tableCellClass} data-label="MR count">
+                                <td
+                                  className={tableCellClass}
+                                  data-label="MR count"
+                                >
                                   {row?.mrCount ?? 0}
                                 </td>
-                                <td className={tableCellClass} data-label="Comments">
+                                <td
+                                  className={tableCellClass}
+                                  data-label="Comments"
+                                >
                                   {row?.commentCount ?? 0}
                                 </td>
                               </tr>

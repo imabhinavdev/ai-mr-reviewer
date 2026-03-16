@@ -16,7 +16,9 @@ let db = null
  */
 export function getPool() {
   if (!env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set; database is required for dashboard and analytics')
+    throw new Error(
+      'DATABASE_URL is not set; database is required for dashboard and analytics',
+    )
   }
   if (!pool) {
     pool = new Pool({ connectionString: env.DATABASE_URL })
@@ -32,7 +34,9 @@ export function getPool() {
  */
 export function getDb() {
   if (!env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set; database is required for dashboard and analytics')
+    throw new Error(
+      'DATABASE_URL is not set; database is required for dashboard and analytics',
+    )
   }
   if (!db) {
     pool = new Pool({ connectionString: env.DATABASE_URL })

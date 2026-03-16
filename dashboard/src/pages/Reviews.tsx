@@ -52,7 +52,9 @@ export function Reviews() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text)]">Reviews</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          Reviews
+        </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
           Recent review activity. Click a row to view details.
         </p>
@@ -98,26 +100,43 @@ export function Reviews() {
                     {events.map((ev: ReviewEvent, index: number) => (
                       <tr
                         key={ev?.id ?? index}
-                        onClick={() => ev?.id != null && navigate(`/reviews/${ev.id}`)}
+                        onClick={() =>
+                          ev?.id != null && navigate(`/reviews/${ev.id}`)
+                        }
                         className={tableBodyRowClickableClass}
                       >
-                        <td className={tableCellClass}>{ev?.repoName ?? '—'}</td>
+                        <td className={tableCellClass}>
+                          {ev?.repoName ?? '—'}
+                        </td>
                         <td className={tableCellClass}>
                           {ev?.provider === 'github' ? '#' : '!'}
                           {ev?.mrNumber ?? '—'}
                         </td>
                         <td className={tableCellClass}>
-                          <span className={statusColor[ev?.status ?? ''] ?? 'text-[var(--color-text-secondary)]'}>
+                          <span
+                            className={
+                              statusColor[ev?.status ?? ''] ??
+                              'text-[var(--color-text-secondary)]'
+                            }
+                          >
                             {ev?.status ?? '—'}
                           </span>
                         </td>
-                        <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
+                        <td
+                          className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                        >
                           {ev?.aiProvider ?? '—'}
                         </td>
-                        <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
-                          {ev?.durationSeconds != null ? `${ev.durationSeconds}s` : '—'}
+                        <td
+                          className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                        >
+                          {ev?.durationSeconds != null
+                            ? `${ev.durationSeconds}s`
+                            : '—'}
                         </td>
-                        <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
+                        <td
+                          className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                        >
                           {ev?.createdAt
                             ? new Date(ev.createdAt).toLocaleString()
                             : '—'}

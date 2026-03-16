@@ -79,9 +79,12 @@ export function startReviewWorker() {
             durationSeconds,
             aiProvider,
           }
-          if (typeof result.filesChanged === 'number') updatePayload.filesChanged = result.filesChanged
-          if (typeof result.linesAdded === 'number') updatePayload.linesAdded = result.linesAdded
-          if (typeof result.linesRemoved === 'number') updatePayload.linesRemoved = result.linesRemoved
+          if (typeof result.filesChanged === 'number')
+            updatePayload.filesChanged = result.filesChanged
+          if (typeof result.linesAdded === 'number')
+            updatePayload.linesAdded = result.linesAdded
+          if (typeof result.linesRemoved === 'number')
+            updatePayload.linesRemoved = result.linesRemoved
           await updateReviewEventByBullmqJobId(job.id, updatePayload)
           if (Array.isArray(result.findings) && result.findings.length > 0) {
             const reviewEventId = await getReviewEventIdByBullmqJobId(job.id)
@@ -89,7 +92,10 @@ export function startReviewWorker() {
               try {
                 await insertReviewFindings(reviewEventId, result.findings)
               } catch (findErr) {
-                logger.warn({ err: findErr, jobId: job.id }, 'Failed to persist review findings')
+                logger.warn(
+                  { err: findErr, jobId: job.id },
+                  'Failed to persist review findings',
+                )
               }
             }
           }
@@ -105,7 +111,10 @@ export function startReviewWorker() {
               failureReason: err?.message ?? String(err),
             })
           } catch (updateErr) {
-            logger.warn({ err: updateErr, jobId: job.id }, 'Failed to update review event status to failed')
+            logger.warn(
+              { err: updateErr, jobId: job.id },
+              'Failed to update review event status to failed',
+            )
           }
         }
         throw err

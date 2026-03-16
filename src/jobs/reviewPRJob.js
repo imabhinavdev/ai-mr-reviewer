@@ -20,14 +20,15 @@ const ALL_SEVERITIES = ['error', 'warning', 'info', 'suggestion']
  * @returns {{ filesChanged: number, linesAdded: number, linesRemoved: number }}
  */
 function computeComplexity(diffFiles) {
-  if (!Array.isArray(diffFiles)) return { filesChanged: 0, linesAdded: 0, linesRemoved: 0 }
+  if (!Array.isArray(diffFiles))
+    return { filesChanged: 0, linesAdded: 0, linesRemoved: 0 }
   let linesAdded = 0
   let linesRemoved = 0
   for (const f of diffFiles) {
     const hunks = f?.hunks ?? []
     for (const h of hunks) {
-      linesAdded += (h.addedLines?.length ?? 0)
-      linesRemoved += (h.removedLines?.length ?? 0)
+      linesAdded += h.addedLines?.length ?? 0
+      linesRemoved += h.removedLines?.length ?? 0
     }
   }
   return {
@@ -119,7 +120,9 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       'Diff loaded',
     )
 
-    const complexity = computeComplexity(Array.isArray(diffFiles) ? diffFiles : [])
+    const complexity = computeComplexity(
+      Array.isArray(diffFiles) ? diffFiles : [],
+    )
     if (isDbConfigured() && jobMeta.jobId) {
       try {
         await updateReviewEventByBullmqJobId(jobMeta.jobId, {
@@ -129,7 +132,10 @@ export async function runReviewPRJob(event, jobMeta = {}) {
           linesRemoved: complexity.linesRemoved,
         })
       } catch (err) {
-        logger.warn({ err, jobId: jobMeta.jobId }, 'Failed to update review event (diff fetched)')
+        logger.warn(
+          { err, jobId: jobMeta.jobId },
+          'Failed to update review event (diff fetched)',
+        )
       }
     }
 
@@ -160,9 +166,14 @@ export async function runReviewPRJob(event, jobMeta = {}) {
 
     if (isDbConfigured() && jobMeta.jobId) {
       try {
-        await updateReviewEventByBullmqJobId(jobMeta.jobId, { aiStartedAt: new Date() })
+        await updateReviewEventByBullmqJobId(jobMeta.jobId, {
+          aiStartedAt: new Date(),
+        })
       } catch (err) {
-        logger.warn({ err, jobId: jobMeta.jobId }, 'Failed to update review event (AI started)')
+        logger.warn(
+          { err, jobId: jobMeta.jobId },
+          'Failed to update review event (AI started)',
+        )
       }
     }
 
@@ -212,7 +223,9 @@ export async function runReviewPRJob(event, jobMeta = {}) {
       )
       if (isDbConfigured() && jobMeta.jobId) {
         try {
-          await updateReviewEventByBullmqJobId(jobMeta.jobId, { commentsPostedAt: new Date() })
+          await updateReviewEventByBullmqJobId(jobMeta.jobId, {
+            commentsPostedAt: new Date(),
+          })
         } catch (_) {}
       }
       return {
@@ -247,7 +260,9 @@ export async function runReviewPRJob(event, jobMeta = {}) {
 
     if (isDbConfigured() && jobMeta.jobId) {
       try {
-        await updateReviewEventByBullmqJobId(jobMeta.jobId, { commentsPostedAt: new Date() })
+        await updateReviewEventByBullmqJobId(jobMeta.jobId, {
+          commentsPostedAt: new Date(),
+        })
       } catch (_) {}
     }
 

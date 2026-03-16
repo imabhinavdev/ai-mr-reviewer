@@ -47,7 +47,9 @@ export function requireAuth(req, res, next) {
     req.user = { username: decoded.sub, role: decoded.role }
     next()
   } catch {
-    res.status(401).json({ success: false, message: 'Invalid or expired token' })
+    res
+      .status(401)
+      .json({ success: false, message: 'Invalid or expired token' })
   }
 }
 

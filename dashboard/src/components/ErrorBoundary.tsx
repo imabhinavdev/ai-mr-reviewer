@@ -68,8 +68,7 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback
-      const message =
-        this.props.message ?? 'This section failed to load.'
+      const message = this.props.message ?? 'This section failed to load.'
       return (
         <ErrorFallback
           message={message}

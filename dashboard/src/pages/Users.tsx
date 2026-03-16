@@ -26,7 +26,8 @@ function formatLastActivity(iso: string | null): string {
   const diffDays = Math.floor(diffMs / 86400000)
   if (diffMins < 1) return 'just now'
   if (diffMins < 60) return `${diffMins} min ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+  if (diffHours < 24)
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
   if (diffDays === 1) return 'yesterday'
   if (diffDays < 7) return `${diffDays} days ago`
   return d.toLocaleDateString()
@@ -64,7 +65,9 @@ export function Users() {
     typeof codeQuality.categories === 'object'
       ? codeQuality.categories
       : {}
-  const categoryEntries = Object.entries(categoriesObj).sort((a, b) => Number(b[1]) - Number(a[1]))
+  const categoryEntries = Object.entries(categoriesObj).sort(
+    (a, b) => Number(b[1]) - Number(a[1]),
+  )
 
   if (error) {
     return (
@@ -79,9 +82,12 @@ export function Users() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text)]">Users</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          Users
+        </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Contributors with review activity (MRs and comments). Click a row to view profile.
+          Contributors with review activity (MRs and comments). Click a row to
+          view profile.
         </p>
       </div>
 
@@ -105,7 +111,9 @@ export function Users() {
                   <span className="text-sm text-[var(--color-text)]">
                     {categoryLabels[key] ?? key.replace(/_/g, ' ')}
                   </span>
-                  <span className="text-sm font-semibold text-[var(--color-text)]">{count}</span>
+                  <span className="text-sm font-semibold text-[var(--color-text)]">
+                    {count}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -120,17 +128,16 @@ export function Users() {
           resetKeys={[data]}
         >
           <Card>
-            <CardHeader
-              title="Top contributors"
-              subtitle="By PRs reviewed"
-            />
+            <CardHeader title="Top contributors" subtitle="By PRs reviewed" />
             <ul className="space-y-2">
               {topContributors.map((row, i) => (
                 <li key={`${row?.provider}-${row?.authorUsername ?? i}`}>
                   <button
                     type="button"
                     className="flex w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left text-sm hover:bg-[var(--color-surface-hover)]/50"
-                    onClick={() => row != null && navigate(userProfilePath(row))}
+                    onClick={() =>
+                      row != null && navigate(userProfilePath(row))
+                    }
                   >
                     <span className="font-medium text-[var(--color-text)]">
                       {i + 1}. {row?.authorUsername ?? '—'}
@@ -155,7 +162,9 @@ export function Users() {
           <div className="p-4 sm:p-5">
             <CardHeader
               title="Contributors"
-              subtitle={Array.isArray(data) ? `${data.length} users` : undefined}
+              subtitle={
+                Array.isArray(data) ? `${data.length} users` : undefined
+              }
             />
             {isLoading && (
               <div className="overflow-x-auto">
@@ -179,14 +188,28 @@ export function Users() {
                           <thead>
                             <tr className={tableHeaderRowClass}>
                               <th className={tableHeaderCellClass}>Username</th>
-                              <th className={tableHeaderCellClass}>Full Name</th>
+                              <th className={tableHeaderCellClass}>
+                                Full Name
+                              </th>
                               <th className={tableHeaderCellClass}>Provider</th>
-                              <th className={tableHeaderCellClass}>Total PRs / MRs</th>
-                              <th className={tableHeaderCellClass}>Reviews processed</th>
-                              <th className={tableHeaderCellClass}>AI comments</th>
-                              <th className={tableHeaderCellClass}>Issues detected</th>
-                              <th className={tableHeaderCellClass}>Last activity</th>
-                              <th className={tableHeaderCellClass}>Repos contributed</th>
+                              <th className={tableHeaderCellClass}>
+                                Total PRs / MRs
+                              </th>
+                              <th className={tableHeaderCellClass}>
+                                Reviews processed
+                              </th>
+                              <th className={tableHeaderCellClass}>
+                                AI comments
+                              </th>
+                              <th className={tableHeaderCellClass}>
+                                Issues detected
+                              </th>
+                              <th className={tableHeaderCellClass}>
+                                Last activity
+                              </th>
+                              <th className={tableHeaderCellClass}>
+                                Repos contributed
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
@@ -194,7 +217,9 @@ export function Users() {
                               <tr
                                 key={`${row?.provider}-${row?.authorUsername ?? i}`}
                                 className={tableBodyRowClickableClass}
-                                onClick={() => row != null && navigate(userProfilePath(row))}
+                                onClick={() =>
+                                  row != null && navigate(userProfilePath(row))
+                                }
                               >
                                 <td className={`${tableCellClass} font-medium`}>
                                   {row?.authorUsername ?? '—'}
@@ -203,12 +228,24 @@ export function Users() {
                                 <td className={`${tableCellClass} capitalize`}>
                                   {row?.provider ?? '—'}
                                 </td>
-                                <td className={tableCellClass}>{row?.mrCount ?? 0}</td>
-                                <td className={tableCellClass}>{row?.mrCount ?? 0}</td>
-                                <td className={tableCellClass}>{row?.commentCount ?? 0}</td>
-                                <td className={tableCellClass}>{row?.commentCount ?? 0}</td>
-                                <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
-                                  {formatLastActivity(row?.lastActivity ?? null)}
+                                <td className={tableCellClass}>
+                                  {row?.mrCount ?? 0}
+                                </td>
+                                <td className={tableCellClass}>
+                                  {row?.mrCount ?? 0}
+                                </td>
+                                <td className={tableCellClass}>
+                                  {row?.commentCount ?? 0}
+                                </td>
+                                <td className={tableCellClass}>
+                                  {row?.commentCount ?? 0}
+                                </td>
+                                <td
+                                  className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                                >
+                                  {formatLastActivity(
+                                    row?.lastActivity ?? null,
+                                  )}
                                 </td>
                                 <td className={tableCellClass}>
                                   {row?.repositories?.length ?? 0}
@@ -227,8 +264,14 @@ export function Users() {
                           role="button"
                           tabIndex={0}
                           className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)]/30 p-4 cursor-pointer hover:bg-[var(--color-surface-hover)]/50"
-                          onClick={() => row != null && navigate(userProfilePath(row))}
-                          onKeyDown={(e) => e.key === 'Enter' && row != null && navigate(userProfilePath(row))}
+                          onClick={() =>
+                            row != null && navigate(userProfilePath(row))
+                          }
+                          onKeyDown={(e) =>
+                            e.key === 'Enter' &&
+                            row != null &&
+                            navigate(userProfilePath(row))
+                          }
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-medium text-[var(--color-text)]">
@@ -243,7 +286,9 @@ export function Users() {
                             <span>AI comments: {row?.commentCount ?? 0}</span>
                             <span>Issues: {row?.commentCount ?? 0}</span>
                             <span>{row?.repositories?.length ?? 0} repos</span>
-                            <span>{formatLastActivity(row?.lastActivity ?? null)}</span>
+                            <span>
+                              {formatLastActivity(row?.lastActivity ?? null)}
+                            </span>
                           </div>
                         </div>
                       ))}

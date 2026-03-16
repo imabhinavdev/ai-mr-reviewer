@@ -22,21 +22,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           className={`${inputBase} ${error ? 'border-[var(--color-error)] focus:ring-[var(--color-error)]' : ''} ${className}`}
           aria-invalid={!!error}
-          aria-describedby={error ? `${props.id}-error` : hint ? `${props.id}-hint` : undefined}
+          aria-describedby={
+            error ? `${props.id}-error` : hint ? `${props.id}-hint` : undefined
+          }
           {...props}
         />
         {error && (
-          <p id={props.id ? `${props.id}-error` : undefined} className="mt-1.5 text-sm text-[var(--color-error)]">
+          <p
+            id={props.id ? `${props.id}-error` : undefined}
+            className="mt-1.5 text-sm text-[var(--color-error)]"
+          >
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={props.id ? `${props.id}-hint` : undefined} className="mt-1.5 text-sm text-[var(--color-text-muted)]">
+          <p
+            id={props.id ? `${props.id}-hint` : undefined}
+            className="mt-1.5 text-sm text-[var(--color-text-muted)]"
+          >
             {hint}
           </p>
         )}
       </div>
     )
-  }
+  },
 )
 Input.displayName = 'Input'

@@ -17,16 +17,52 @@ import {
 } from 'lucide-react'
 
 const navItems: { to: string; label: string; icon: ReactNode }[] = [
-  { to: '/', label: 'Dashboard', icon: <LayoutDashboard className="size-5 shrink-0" /> },
-  { to: '/reviews', label: 'Reviews', icon: <ListChecks className="size-5 shrink-0" /> },
-  { to: '/projects', label: 'Repositories', icon: <FolderKanban className="size-5 shrink-0" /> },
+  {
+    to: '/',
+    label: 'Dashboard',
+    icon: <LayoutDashboard className="size-5 shrink-0" />,
+  },
+  {
+    to: '/reviews',
+    label: 'Reviews',
+    icon: <ListChecks className="size-5 shrink-0" />,
+  },
+  {
+    to: '/projects',
+    label: 'Repositories',
+    icon: <FolderKanban className="size-5 shrink-0" />,
+  },
   { to: '/users', label: 'Users', icon: <Users className="size-5 shrink-0" /> },
-  { to: '/queue', label: 'Queue', icon: <Layers className="size-5 shrink-0" /> },
-  { to: '/webhooks', label: 'Webhooks', icon: <Webhook className="size-5 shrink-0" /> },
-  { to: '/integrations', label: 'Integrations', icon: <Plug className="size-5 shrink-0" /> },
-  { to: '/analytics', label: 'Analytics', icon: <BarChart3 className="size-5 shrink-0" /> },
-  { to: '/rules', label: 'Rules', icon: <FileText className="size-5 shrink-0" /> },
-  { to: '/settings', label: 'Settings', icon: <Settings className="size-5 shrink-0" /> },
+  {
+    to: '/queue',
+    label: 'Queue',
+    icon: <Layers className="size-5 shrink-0" />,
+  },
+  {
+    to: '/webhooks',
+    label: 'Webhooks',
+    icon: <Webhook className="size-5 shrink-0" />,
+  },
+  {
+    to: '/integrations',
+    label: 'Integrations',
+    icon: <Plug className="size-5 shrink-0" />,
+  },
+  {
+    to: '/analytics',
+    label: 'Analytics',
+    icon: <BarChart3 className="size-5 shrink-0" />,
+  },
+  {
+    to: '/rules',
+    label: 'Rules',
+    icon: <FileText className="size-5 shrink-0" />,
+  },
+  {
+    to: '/settings',
+    label: 'Settings',
+    icon: <Settings className="size-5 shrink-0" />,
+  },
 ]
 
 interface SidebarProps {
@@ -36,12 +72,19 @@ interface SidebarProps {
   onMobileClose: () => void
 }
 
-export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  mobileOpen,
+  onMobileClose,
+}: SidebarProps) {
   const [hovered, setHovered] = useState(false)
   const showLabels = !collapsed || hovered
 
   const nav = (
-    <nav className={`flex flex-col gap-0.5 py-4 ${collapsed ? 'px-2' : 'px-3'}`}>
+    <nav
+      className={`flex flex-col gap-0.5 py-4 ${collapsed ? 'px-2' : 'px-3'}`}
+    >
       {navItems.map(({ to, label, icon }) => (
         <NavLink
           key={to}
@@ -58,7 +101,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             }`
           }
         >
-          <span className="flex shrink-0 items-center justify-center text-current">{icon}</span>
+          <span className="flex shrink-0 items-center justify-center text-current">
+            {icon}
+          </span>
           {showLabels && <span className="truncate">{label}</span>}
         </NavLink>
       ))}
@@ -98,7 +143,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               Nirik
             </span>
           ) : (
-            <span className="text-base font-semibold text-[var(--color-primary)]">N</span>
+            <span className="text-base font-semibold text-[var(--color-primary)]">
+              N
+            </span>
           )}
           <div className="flex items-center gap-0.5 shrink-0">
             <button
@@ -107,7 +154,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               className="hidden lg:flex size-8 items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+              {collapsed ? (
+                <ChevronRight className="size-4" />
+              ) : (
+                <ChevronLeft className="size-4" />
+              )}
             </button>
             {mobileOpen && (
               <button

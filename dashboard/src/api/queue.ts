@@ -37,7 +37,9 @@ export interface QueueStatus {
   repo?: string
 }
 
-export async function fetchQueueStatus(params?: { repo?: string }): Promise<QueueStatus> {
+export async function fetchQueueStatus(params?: {
+  repo?: string
+}): Promise<QueueStatus> {
   const url = apiUrl('/api/v1/queue/status')
   if (params?.repo) url.searchParams.set('repo', params.repo)
   const res = await fetch(url.toString(), {

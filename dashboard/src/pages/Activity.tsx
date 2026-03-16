@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import { fetchActivity } from '@/api/analytics'
 
 function getDateRange(days: number) {
@@ -27,7 +34,10 @@ export function Activity() {
       }),
   })
 
-  if (isLoading) return <p className="text-gray-600 dark:text-gray-400">Loading activity...</p>
+  if (isLoading)
+    return (
+      <p className="text-gray-600 dark:text-gray-400">Loading activity...</p>
+    )
   if (error) {
     return (
       <p className="text-red-600 dark:text-red-400">
@@ -56,10 +66,15 @@ export function Activity() {
       </div>
       <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800 min-h-[320px]">
         {chartData.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-400">No activity in this range</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            No activity in this range
+          </p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />

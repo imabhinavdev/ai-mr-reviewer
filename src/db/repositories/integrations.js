@@ -5,7 +5,11 @@ import { env } from '../../config/env.js'
 
 const INTEGRATION_DEFS = [
   { type: 'github', name: 'GitHub', envKeys: ['GITHUB_TOKEN'] },
-  { type: 'gitlab', name: 'GitLab', envKeys: ['GITLAB_TOKEN', 'GITLAB_PRIVATE_TOKEN'] },
+  {
+    type: 'gitlab',
+    name: 'GitLab',
+    envKeys: ['GITLAB_TOKEN', 'GITLAB_PRIVATE_TOKEN'],
+  },
 ]
 
 /**
@@ -17,8 +21,14 @@ export async function syncIntegrationsFromEnv() {
   const now = new Date()
 
   for (const def of INTEGRATION_DEFS) {
-    const configured = def.envKeys.some((key) => env[key] && String(env[key]).trim().length > 0)
-    const existing = await db.select().from(integrations).where(eq(integrations.type, def.type)).limit(1)
+    const configured = def.envKeys.some(
+      (key) => env[key] && String(env[key]).trim().length > 0,
+    )
+    const existing = await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.type, def.type))
+      .limit(1)
     if (existing.length > 0) {
       await db
         .update(integrations)

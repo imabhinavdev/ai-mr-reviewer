@@ -63,7 +63,12 @@ try {
   if (existsSync(path.join(dashboardDist, 'index.html'))) {
     app.use(express.static(dashboardDist))
     app.get('*', (req, res, next) => {
-      if (req.method !== 'GET' || req.path.startsWith('/api') || req.path === '/metrics') return next()
+      if (
+        req.method !== 'GET' ||
+        req.path.startsWith('/api') ||
+        req.path === '/metrics'
+      )
+        return next()
       res.sendFile(path.join(dashboardDist, 'index.html'))
     })
   }
@@ -98,7 +103,10 @@ async function start() {
       await runMigrations()
       logger.info('Database migrations completed')
     } catch (err) {
-      logger.warn({ err }, 'Database migration failed; dashboard/analytics may be unavailable')
+      logger.warn(
+        { err },
+        'Database migration failed; dashboard/analytics may be unavailable',
+      )
     }
   }
 

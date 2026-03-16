@@ -32,9 +32,13 @@ export function ErrorFallback({
           {icon}
         </div>
       )}
-      <p className="text-sm font-medium text-[var(--color-text-secondary)]">{message}</p>
+      <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+        {message}
+      </p>
       {errorMessage && (
-        <p className="mt-1 text-xs text-[var(--color-text-muted)]">{errorMessage}</p>
+        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          {errorMessage}
+        </p>
       )}
       {onRetry && (
         <button

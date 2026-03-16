@@ -19,7 +19,8 @@ export function login(req, res) {
   if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !env.JWT_SECRET) {
     res.status(503).json({
       success: false,
-      message: 'Auth not configured (missing ADMIN_USERNAME, ADMIN_PASSWORD, or JWT_SECRET)',
+      message:
+        'Auth not configured (missing ADMIN_USERNAME, ADMIN_PASSWORD, or JWT_SECRET)',
     })
     return
   }
@@ -31,15 +32,15 @@ export function login(req, res) {
     !timingSafeEqual(username, env.ADMIN_USERNAME) ||
     !timingSafeEqual(password, env.ADMIN_PASSWORD)
   ) {
-    res.status(401).json({ success: false, message: 'Invalid username or password' })
+    res
+      .status(401)
+      .json({ success: false, message: 'Invalid username or password' })
     return
   }
 
-  const token = jwt.sign(
-    { sub: username, role: 'admin' },
-    env.JWT_SECRET,
-    { expiresIn: JWT_EXPIRY },
-  )
+  const token = jwt.sign({ sub: username, role: 'admin' }, env.JWT_SECRET, {
+    expiresIn: JWT_EXPIRY,
+  })
 
   res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS)
   res.status(200).json({

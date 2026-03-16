@@ -55,10 +55,7 @@ export function Events() {
 
       <Card padding="none">
         <div className="p-4 sm:p-5">
-          <CardHeader
-            title="Events"
-            subtitle={`${total} total events`}
-          />
+          <CardHeader title="Events" subtitle={`${total} total events`} />
           <div className="overflow-x-auto -mx-4 -mb-4 sm:-mx-5 sm:-mb-5">
             <table className={tableClass}>
               <thead>
@@ -101,7 +98,9 @@ export function Events() {
                           {ev.status}
                         </span>
                       </td>
-                      <td className={tableCellClass}>{ev.commentsPostedCount}</td>
+                      <td className={tableCellClass}>
+                        {ev.commentsPostedCount}
+                      </td>
                       <td
                         className={`${tableCellClass} text-[var(--color-text-secondary)]`}
                       >

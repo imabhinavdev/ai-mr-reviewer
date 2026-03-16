@@ -100,7 +100,10 @@ export const reviewPRWebhook = asyncHandler(async (req, res) => {
         bullmqJobId: job.id,
       })
     } catch (err) {
-      logger.warn({ err, jobId: job.id }, 'Failed to persist review event for analytics')
+      logger.warn(
+        { err, jobId: job.id },
+        'Failed to persist review event for analytics',
+      )
     }
   }
 
@@ -136,7 +139,8 @@ export const listWebhookEvents = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: { events: [] } })
     return
   }
-  const { listWebhookEvents: listEvents } = await import('../db/repositories/webhookEvents.js')
+  const { listWebhookEvents: listEvents } =
+    await import('../db/repositories/webhookEvents.js')
   const limit = Math.min(parseInt(String(req.query.limit), 10) || 50, 100)
   const events = await listEvents({ limit })
   logger.info(

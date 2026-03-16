@@ -1,6 +1,9 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { isDbConfigured } from '../config/db.js'
-import { getRepository, getRepositoryFileContents } from '../services/github.service.js'
+import {
+  getRepository,
+  getRepositoryFileContents,
+} from '../services/github.service.js'
 import { getProject, getRepositoryFileRaw } from '../services/gitlab.service.js'
 import {
   getOverview,
@@ -80,9 +83,10 @@ export const events = [
       page,
     } = req.query
     const limitNum = Math.min(parseInt(String(limit), 10) || 50, 100)
-    const offsetNum = page !== undefined
-      ? (Math.max(0, parseInt(String(page), 10) || 0)) * limitNum
-      : Math.max(0, parseInt(String(offset), 10) || 0)
+    const offsetNum =
+      page !== undefined
+        ? Math.max(0, parseInt(String(page), 10) || 0) * limitNum
+        : Math.max(0, parseInt(String(offset), 10) || 0)
     const { events: list, total } = await listEvents({
       provider: provider ? String(provider) : undefined,
       repo: repo ? String(repo) : undefined,
@@ -121,7 +125,9 @@ export const userProfile = [
     const provider = String(req.params.provider ?? '').toLowerCase()
     const username = decodeURIComponent(String(req.params.username ?? ''))
     if (!provider || !username) {
-      res.status(400).json({ success: false, message: 'Provider and username required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and username required' })
       return
     }
     const now = new Date()
@@ -131,18 +137,19 @@ export const userProfile = [
       to: now.toISOString().slice(0, 10),
       bucket: 'day',
     }
-    const [profile, repos, recentEvents, activity, issuesActivity] = await Promise.all([
-      getUserProfile(provider, username),
-      listReposByUser(provider, username),
-      listEvents({
-        provider,
-        authorUsername: username,
-        limit: 20,
-        offset: 0,
-      }),
-      getActivityByUser(provider, username, dateRange),
-      getIssuesActivityByUser(provider, username, dateRange),
-    ])
+    const [profile, repos, recentEvents, activity, issuesActivity] =
+      await Promise.all([
+        getUserProfile(provider, username),
+        listReposByUser(provider, username),
+        listEvents({
+          provider,
+          authorUsername: username,
+          limit: 20,
+          offset: 0,
+        }),
+        getActivityByUser(provider, username, dateRange),
+        getIssuesActivityByUser(provider, username, dateRange),
+      ])
     if (!profile) {
       res.status(404).json({ success: false, message: 'User not found' })
       return
@@ -189,7 +196,9 @@ export const repoOverview = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     const data = await getRepoOverview(provider, repoId)
@@ -202,7 +211,9 @@ export const repoActivity = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     const { from, to, bucket = 'day' } = req.query
@@ -225,7 +236,9 @@ export const repoContributors = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     const data = await listUsersByRepo(provider, repoId)
@@ -238,7 +251,9 @@ export const repoIssueSummary = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     const data = await getRepoIssueSummary(provider, repoId)
@@ -251,7 +266,9 @@ export const repoHealthScore = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     const data = await getRepoHealthScore(provider, repoId)
@@ -265,15 +282,23 @@ export const repoRules = [
   asyncHandler(async (req, res) => {
     const { provider, repoId } = getRepoParams(req)
     if (!provider || !repoId) {
-      res.status(400).json({ success: false, message: 'Provider and repoId required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and repoId required' })
       return
     }
     try {
       if (provider === 'github') {
         const repo = await getRepository(repoId)
-        const content = await getRepositoryFileContents(repoId, RULES_PATH, repo.default_branch)
+        const content = await getRepositoryFileContents(
+          repoId,
+          RULES_PATH,
+          repo.default_branch,
+        )
         if (content == null) {
-          res.status(404).json({ success: false, message: 'No .nirik/rules.md found' })
+          res
+            .status(404)
+            .json({ success: false, message: 'No .nirik/rules.md found' })
           return
         }
         res.status(200).json({ success: true, data: { content } })
@@ -281,9 +306,15 @@ export const repoRules = [
       }
       if (provider === 'gitlab') {
         const project = await getProject(repoId)
-        const content = await getRepositoryFileRaw(repoId, RULES_PATH, project.default_branch)
+        const content = await getRepositoryFileRaw(
+          repoId,
+          RULES_PATH,
+          project.default_branch,
+        )
         if (content == null) {
-          res.status(404).json({ success: false, message: 'No .nirik/rules.md found' })
+          res
+            .status(404)
+            .json({ success: false, message: 'No .nirik/rules.md found' })
           return
         }
         res.status(200).json({ success: true, data: { content } })
@@ -291,12 +322,19 @@ export const repoRules = [
       }
       res.status(400).json({ success: false, message: 'Unknown provider' })
     } catch (err) {
-      if (err.message?.includes('not set') || err.message?.includes('required')) {
-        res.status(503).json({ success: false, message: 'Git integration not configured' })
+      if (
+        err.message?.includes('not set') ||
+        err.message?.includes('required')
+      ) {
+        res
+          .status(503)
+          .json({ success: false, message: 'Git integration not configured' })
         return
       }
       if (err.message?.includes('404') || err.message?.includes('not found')) {
-        res.status(404).json({ success: false, message: 'Repository or file not found' })
+        res
+          .status(404)
+          .json({ success: false, message: 'Repository or file not found' })
         return
       }
       throw err
@@ -349,7 +387,9 @@ export const reviewCompare = [
     }
     const { event1, event2 } = await getReviewCompare(id1, id2)
     if (!event1 || !event2) {
-      res.status(404).json({ success: false, message: 'One or both reviews not found' })
+      res
+        .status(404)
+        .json({ success: false, message: 'One or both reviews not found' })
       return
     }
     const findings = await getFindingsByReviewEventIds([event1.id, event2.id])
@@ -393,7 +433,9 @@ export const userInsights = [
     const provider = String(req.params.provider ?? '').toLowerCase()
     const username = decodeURIComponent(String(req.params.username ?? ''))
     if (!provider || !username) {
-      res.status(400).json({ success: false, message: 'Provider and username required' })
+      res
+        .status(400)
+        .json({ success: false, message: 'Provider and username required' })
       return
     }
     const categories = await getUserCodeQualityInsights(provider, username)

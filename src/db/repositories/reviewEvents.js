@@ -50,14 +50,21 @@ export async function updateReviewEventByBullmqJobId(bullmqJobId, update) {
   }
   if (update.aiProvider != null) values.aiProvider = update.aiProvider
   if (update.failureReason != null) values.failureReason = update.failureReason
-  if (typeof update.filesChanged === 'number') values.filesChanged = update.filesChanged
-  if (typeof update.linesAdded === 'number') values.linesAdded = update.linesAdded
-  if (typeof update.linesRemoved === 'number') values.linesRemoved = update.linesRemoved
+  if (typeof update.filesChanged === 'number')
+    values.filesChanged = update.filesChanged
+  if (typeof update.linesAdded === 'number')
+    values.linesAdded = update.linesAdded
+  if (typeof update.linesRemoved === 'number')
+    values.linesRemoved = update.linesRemoved
   if (update.queuedAt != null) values.queuedAt = update.queuedAt
   if (update.diffFetchedAt != null) values.diffFetchedAt = update.diffFetchedAt
   if (update.aiStartedAt != null) values.aiStartedAt = update.aiStartedAt
-  if (update.commentsPostedAt != null) values.commentsPostedAt = update.commentsPostedAt
-  await db.update(reviewEvents).set(values).where(eq(reviewEvents.bullmqJobId, bullmqJobId))
+  if (update.commentsPostedAt != null)
+    values.commentsPostedAt = update.commentsPostedAt
+  await db
+    .update(reviewEvents)
+    .set(values)
+    .where(eq(reviewEvents.bullmqJobId, bullmqJobId))
 }
 
 /**
@@ -93,7 +100,9 @@ export async function getOverview() {
     .groupBy(reviewEvents.status)
 
   const [commentsResult] = await db
-    .select({ sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int` })
+    .select({
+      sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int`,
+    })
     .from(reviewEvents)
 
   const last7Rows = await db
@@ -120,7 +129,8 @@ export async function getOverview() {
     })
     .from(reviewEvents)
     .where(sql`${reviewEvents.durationSeconds} IS NOT NULL`)
-  const avgReviewTimeSeconds = avgResult?.avg != null ? Number(avgResult.avg) : null
+  const avgReviewTimeSeconds =
+    avgResult?.avg != null ? Number(avgResult.avg) : null
 
   const distinctRepos = await db
     .select({ count: sql`count(distinct ${reviewEvents.repoId})::int` })
@@ -159,7 +169,16 @@ export async function getOverview() {
  */
 export async function listEvents(filters = {}) {
   const db = getDb()
-  const { provider, repo, status, from, to, authorUsername, limit = 50, offset = 0 } = filters
+  const {
+    provider,
+    repo,
+    status,
+    from,
+    to,
+    authorUsername,
+    limit = 50,
+    offset = 0,
+  } = filters
 
   const conditions = []
   if (provider) conditions.push(eq(reviewEvents.provider, provider))
@@ -167,7 +186,8 @@ export async function listEvents(filters = {}) {
   if (status) conditions.push(eq(reviewEvents.status, status))
   if (from) conditions.push(gte(reviewEvents.createdAt, new Date(from)))
   if (to) conditions.push(lte(reviewEvents.createdAt, new Date(to)))
-  if (authorUsername != null && authorUsername !== '') conditions.push(eq(reviewEvents.authorUsername, authorUsername))
+  if (authorUsername != null && authorUsername !== '')
+    conditions.push(eq(reviewEvents.authorUsername, authorUsername))
 
   const where = conditions.length ? and(...conditions) : undefined
 
@@ -197,7 +217,11 @@ export async function listEvents(filters = {}) {
  */
 export async function getEventById(id) {
   const db = getDb()
-  const rows = await db.select().from(reviewEvents).where(eq(reviewEvents.id, id)).limit(1)
+  const rows = await db
+    .select()
+    .from(reviewEvents)
+    .where(eq(reviewEvents.id, id))
+    .limit(1)
   return rows[0] ?? null
 }
 
@@ -280,7 +304,12 @@ export async function listUsers() {
     mrCount: Number(r.mrCount),
     commentCount: Number(r.commentCount),
     repositories: Array.isArray(r.repositories) ? r.repositories : [],
-    lastActivity: r.lastActivity instanceof Date ? r.lastActivity : r.lastActivity ? new Date(r.lastActivity) : null,
+    lastActivity:
+      r.lastActivity instanceof Date
+        ? r.lastActivity
+        : r.lastActivity
+          ? new Date(r.lastActivity)
+          : null,
   }))
 }
 
@@ -306,7 +335,10 @@ export async function getActivity(params) {
   const rows = result.rows ?? []
 
   return rows.map((r) => ({
-    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
+    date:
+      r.date instanceof Date
+        ? r.date.toISOString().slice(0, 10)
+        : String(r.date).slice(0, 10),
     count: Number(r.count),
   }))
 }
@@ -358,10 +390,21 @@ export async function getUserProfile(provider, username) {
     repoCount: Number(aggRow.repoCount),
     totalPRs,
     totalComments,
-    firstSeen: aggRow.firstSeen instanceof Date ? aggRow.firstSeen : aggRow.firstSeen ? new Date(aggRow.firstSeen) : null,
-    lastActivity: aggRow.lastActivity instanceof Date ? aggRow.lastActivity : aggRow.lastActivity ? new Date(aggRow.lastActivity) : null,
+    firstSeen:
+      aggRow.firstSeen instanceof Date
+        ? aggRow.firstSeen
+        : aggRow.firstSeen
+          ? new Date(aggRow.firstSeen)
+          : null,
+    lastActivity:
+      aggRow.lastActivity instanceof Date
+        ? aggRow.lastActivity
+        : aggRow.lastActivity
+          ? new Date(aggRow.lastActivity)
+          : null,
     prsWithIssues,
-    avgIssuesPerPR: totalPRs > 0 ? Math.round((totalComments / totalPRs) * 10) / 10 : 0,
+    avgIssuesPerPR:
+      totalPRs > 0 ? Math.round((totalComments / totalPRs) * 10) / 10 : 0,
   }
 }
 
@@ -391,7 +434,12 @@ export async function listReposByUser(provider, username) {
     repoName: r.repoName,
     mrCount: Number(r.mrCount),
     commentCount: Number(r.commentCount),
-    lastContribution: r.lastContribution instanceof Date ? r.lastContribution : r.lastContribution ? new Date(r.lastContribution) : null,
+    lastContribution:
+      r.lastContribution instanceof Date
+        ? r.lastContribution
+        : r.lastContribution
+          ? new Date(r.lastContribution)
+          : null,
   }))
 }
 
@@ -420,7 +468,10 @@ export async function getActivityByUser(provider, username, params) {
   const rows = result.rows ?? []
 
   return rows.map((r) => ({
-    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
+    date:
+      r.date instanceof Date
+        ? r.date.toISOString().slice(0, 10)
+        : String(r.date).slice(0, 10),
     count: Number(r.count),
   }))
 }
@@ -451,7 +502,10 @@ export async function getIssuesActivityByUser(provider, username, params) {
   const rows = result.rows ?? []
 
   return rows.map((r) => ({
-    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
+    date:
+      r.date instanceof Date
+        ? r.date.toISOString().slice(0, 10)
+        : String(r.date).slice(0, 10),
     count: Number(r.count),
   }))
 }
@@ -473,7 +527,10 @@ export async function getIssuesActivityByUser(provider, username, params) {
 export async function getRepoOverview(provider, repoId) {
   const db = getDb()
   const pool = getPool()
-  const baseConditions = and(eq(reviewEvents.provider, provider), eq(reviewEvents.repoId, repoId))
+  const baseConditions = and(
+    eq(reviewEvents.provider, provider),
+    eq(reviewEvents.repoId, repoId),
+  )
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
@@ -492,11 +549,15 @@ export async function getRepoOverview(provider, repoId) {
   const [avgRow] = await db
     .select({ avg: sql`avg(${reviewEvents.durationSeconds})::float` })
     .from(reviewEvents)
-    .where(and(baseConditions, sql`${reviewEvents.durationSeconds} IS NOT NULL`))
+    .where(
+      and(baseConditions, sql`${reviewEvents.durationSeconds} IS NOT NULL`),
+    )
   const avgReviewTimeSeconds = avgRow?.avg != null ? Number(avgRow.avg) : null
 
   const [commentsRow] = await db
-    .select({ sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int` })
+    .select({
+      sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int`,
+    })
     .from(reviewEvents)
     .where(baseConditions)
   const totalComments = commentsRow?.sum ?? 0
@@ -558,7 +619,10 @@ export async function getRepoActivity(provider, repoId, params) {
   const rows = result.rows ?? []
 
   return rows.map((r) => ({
-    date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
+    date:
+      r.date instanceof Date
+        ? r.date.toISOString().slice(0, 10)
+        : String(r.date).slice(0, 10),
     count: Number(r.count),
   }))
 }
@@ -588,7 +652,12 @@ export async function listUsersByRepo(provider, repoId) {
     authorUsername: r.authorUsername,
     mrCount: Number(r.mrCount),
     commentCount: Number(r.commentCount),
-    lastActivity: r.lastActivity instanceof Date ? r.lastActivity : r.lastActivity ? new Date(r.lastActivity) : null,
+    lastActivity:
+      r.lastActivity instanceof Date
+        ? r.lastActivity
+        : r.lastActivity
+          ? new Date(r.lastActivity)
+          : null,
   }))
 }
 
@@ -600,7 +669,10 @@ export async function listUsersByRepo(provider, repoId) {
  */
 export async function getRepoIssueSummary(provider, repoId) {
   const db = getDb()
-  const baseConditions = and(eq(reviewEvents.provider, provider), eq(reviewEvents.repoId, repoId))
+  const baseConditions = and(
+    eq(reviewEvents.provider, provider),
+    eq(reviewEvents.repoId, repoId),
+  )
 
   const [noIssuesRow] = await db
     .select({ count: sql`count(*)::int` })
@@ -611,7 +683,9 @@ export async function getRepoIssueSummary(provider, repoId) {
     .from(reviewEvents)
     .where(and(baseConditions, sql`${reviewEvents.commentsPostedCount} > 0`))
   const [commentsRow] = await db
-    .select({ sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int` })
+    .select({
+      sum: sql`coalesce(sum(${reviewEvents.commentsPostedCount}), 0)::int`,
+    })
     .from(reviewEvents)
     .where(baseConditions)
 
@@ -660,15 +734,22 @@ export async function getRepoHealthScore(provider, repoId) {
     }
   }
 
-  if (overview.avgReviewTimeSeconds != null && overview.avgReviewTimeSeconds < 60) {
+  if (
+    overview.avgReviewTimeSeconds != null &&
+    overview.avgReviewTimeSeconds < 60
+  ) {
     score += 1
     reasons.push('Fast average review time')
-  } else if (overview.avgReviewTimeSeconds != null && overview.avgReviewTimeSeconds > 120) {
+  } else if (
+    overview.avgReviewTimeSeconds != null &&
+    overview.avgReviewTimeSeconds > 120
+  ) {
     score -= 0.5
     reasons.push('Slow average review time')
   }
 
-  const commentsPerReview = overview.total > 0 ? overview.totalComments / overview.total : 0
+  const commentsPerReview =
+    overview.total > 0 ? overview.totalComments / overview.total : 0
   if (commentsPerReview > 20) {
     score -= 1
     reasons.push('Many AI issues per PR')
@@ -692,11 +773,19 @@ export async function getRetriesToday() {
   const [countRow] = await db
     .select({ count: sql`count(*)::int` })
     .from(reviewEvents)
-    .where(and(eq(reviewEvents.status, 'failed'), gte(reviewEvents.updatedAt, startOfToday)))
+    .where(
+      and(
+        eq(reviewEvents.status, 'failed'),
+        gte(reviewEvents.updatedAt, startOfToday),
+      ),
+    )
   const retriesToday = countRow?.count ?? 0
 
   const [lastRow] = await db
-    .select({ failureReason: reviewEvents.failureReason, updatedAt: reviewEvents.updatedAt })
+    .select({
+      failureReason: reviewEvents.failureReason,
+      updatedAt: reviewEvents.updatedAt,
+    })
     .from(reviewEvents)
     .where(eq(reviewEvents.status, 'failed'))
     .orderBy(desc(reviewEvents.updatedAt))
@@ -705,7 +794,10 @@ export async function getRetriesToday() {
     lastRow != null
       ? {
           reason: lastRow.failureReason ?? 'Unknown',
-          at: lastRow.updatedAt instanceof Date ? lastRow.updatedAt : new Date(lastRow.updatedAt),
+          at:
+            lastRow.updatedAt instanceof Date
+              ? lastRow.updatedAt
+              : new Date(lastRow.updatedAt),
         }
       : null
 
@@ -741,7 +833,8 @@ export async function getReposHealthList() {
 export async function getPrComplexity(filters = {}) {
   const db = getDb()
   const conditions = []
-  if (filters.provider) conditions.push(eq(reviewEvents.provider, filters.provider))
+  if (filters.provider)
+    conditions.push(eq(reviewEvents.provider, filters.provider))
   if (filters.repoId) conditions.push(eq(reviewEvents.repoId, filters.repoId))
   conditions.push(sql`${reviewEvents.filesChanged} IS NOT NULL`)
   conditions.push(sql`${reviewEvents.linesAdded} IS NOT NULL`)
@@ -758,7 +851,8 @@ export async function getPrComplexity(filters = {}) {
     .where(where)
   const sampleSize = Number(agg?.sampleSize ?? 0)
   return {
-    avgFilesChanged: sampleSize > 0 ? Math.round(Number(agg?.avgFiles ?? 0) * 10) / 10 : 0,
+    avgFilesChanged:
+      sampleSize > 0 ? Math.round(Number(agg?.avgFiles ?? 0) * 10) / 10 : 0,
     avgLinesAdded: sampleSize > 0 ? Math.round(Number(agg?.avgLines ?? 0)) : 0,
     maxLinesAdded: Number(agg?.maxLines ?? 0),
     sampleSize,
@@ -815,7 +909,7 @@ export async function getAlerts() {
     const rateToday = totalToday > 0 ? (failedToday / totalToday) * 100 : 0
     const rate7d = total7d > 0 ? (failed7d / total7d) * 100 : 0
     if (totalToday > 0 && rate7d < 100 && rateToday > rate7d * 1.2) {
-      const pct = Math.round((rateToday - rate7d) / rate7d * 100)
+      const pct = Math.round(((rateToday - rate7d) / rate7d) * 100)
       alerts.push({
         id: 'review-failures-spike',
         message: `Review failures increased by ${pct}% today compared to 7-day average.`,

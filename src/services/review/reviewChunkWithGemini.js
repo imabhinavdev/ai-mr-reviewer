@@ -28,7 +28,13 @@ export const reviewChunkResponseSchema = {
           },
           category: {
             type: 'string',
-            enum: ['error_handling', 'unused_variables', 'security', 'performance', 'other'],
+            enum: [
+              'error_handling',
+              'unused_variables',
+              'security',
+              'performance',
+              'other',
+            ],
             description:
               'Category: error_handling, unused_variables, security, performance, or other',
           },
@@ -48,7 +54,16 @@ const parsedChunkSchema = z.object({
       file: z.string(),
       line: z.number().int().positive(),
       severity: z.enum(['info', 'suggestion', 'warning', 'error']),
-      category: z.enum(['error_handling', 'unused_variables', 'security', 'performance', 'other']).optional().default('other'),
+      category: z
+        .enum([
+          'error_handling',
+          'unused_variables',
+          'security',
+          'performance',
+          'other',
+        ])
+        .optional()
+        .default('other'),
       body: z.string(),
     }),
   ),

@@ -3,8 +3,7 @@ import { type ReactNode } from 'react'
 /** Shared table class names for consistent spacing and responsiveness. */
 
 /** Wrapper when card body has p-4 sm:p-5 (padding="none" cards). Table scrolls edge-to-edge. */
-export const tableWrapperClass =
-  'overflow-x-auto -mx-4 -mb-4 sm:-mx-5 sm:-mb-5'
+export const tableWrapperClass = 'overflow-x-auto -mx-4 -mb-4 sm:-mx-5 sm:-mb-5'
 
 /** Wrapper when card has default padding (e.g. Analytics). Table full-bleed within card. */
 export const tableWrapperPaddedCardClass = 'overflow-x-auto -mx-5 -mb-5'

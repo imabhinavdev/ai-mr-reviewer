@@ -22,7 +22,8 @@ export function Integrations() {
   if (error) {
     return (
       <div className="rounded-lg border border-[var(--color-error)]/50 bg-[var(--color-error-muted)] px-4 py-4 text-sm text-[var(--color-error)]">
-        Error: {error instanceof Error ? error.message : 'Failed to load integrations'}
+        Error:{' '}
+        {error instanceof Error ? error.message : 'Failed to load integrations'}
       </div>
     )
   }
@@ -31,9 +32,12 @@ export function Integrations() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text)]">Integrations</h1>
+          <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+            Integrations
+          </h1>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-            Git providers synced from environment. Configure tokens in your .env to enable.
+            Git providers synced from environment. Configure tokens in your .env
+            to enable.
           </p>
         </div>
         <Button
@@ -95,7 +99,9 @@ export function Integrations() {
                 />
                 <div className="mt-2 flex items-center gap-3 text-[var(--color-text-secondary)]">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-hover)] text-[var(--color-text)]">
-                    {iconByType[integration?.type ?? ''] ?? <Plug className="size-5" />}
+                    {iconByType[integration?.type ?? ''] ?? (
+                      <Plug className="size-5" />
+                    )}
                   </div>
                   <p className="text-sm">
                     {integration?.type === 'github'
@@ -112,7 +118,8 @@ export function Integrations() {
                 )}
                 {integration?.lastActivityAt && (
                   <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                    Last activity: {new Date(integration.lastActivityAt).toLocaleString()}
+                    Last activity:{' '}
+                    {new Date(integration.lastActivityAt).toLocaleString()}
                   </p>
                 )}
                 {integration?.syncedAt && (

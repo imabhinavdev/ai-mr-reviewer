@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Bell, Sun, Moon, LogOut, User, ChevronDown } from 'lucide-react'
+import {
+  Search,
+  Bell,
+  Sun,
+  Moon,
+  LogOut,
+  User,
+  ChevronDown,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { logout } from '../api/auth'
@@ -24,8 +32,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
-        userMenuRef.current && !userMenuRef.current.contains(e.target as Node) &&
-        notifRef.current && !notifRef.current.contains(e.target as Node)
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node) &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target as Node)
       ) {
         setUserMenuOpen(false)
         setNotificationsOpen(false)
@@ -77,9 +87,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           type="button"
           onClick={toggleTheme}
           className="flex size-9 items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] transition-colors"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={
+            theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+          }
         >
-          {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {theme === 'dark' ? (
+            <Sun className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
         </button>
 
         {/* Notifications */}
@@ -126,11 +142,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 <p className="text-sm font-medium text-[var(--color-text)] truncate">
                   {user?.username ?? 'Admin'}
                 </p>
-                <p className="text-xs text-[var(--color-text-muted)]">Signed in</p>
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  Signed in
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => { setUserMenuOpen(false); navigate('/profile'); }}
+                onClick={() => {
+                  setUserMenuOpen(false)
+                  navigate('/profile')
+                }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               >
                 <User className="size-4" /> Profile

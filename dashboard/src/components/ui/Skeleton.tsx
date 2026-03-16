@@ -23,7 +23,13 @@ export function SkeletonCard() {
   )
 }
 
-export function SkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
+export function SkeletonTable({
+  rows = 5,
+  cols = 5,
+}: {
+  rows?: number
+  cols?: number
+}) {
   const cellPadding = 'px-4 sm:px-5'
   const rowPadding = 'py-3'
   return (

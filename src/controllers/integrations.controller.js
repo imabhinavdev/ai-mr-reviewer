@@ -1,6 +1,9 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { isDbConfigured } from '../config/db.js'
-import { syncIntegrationsFromEnv, listIntegrations } from '../db/repositories/integrations.js'
+import {
+  syncIntegrationsFromEnv,
+  listIntegrations,
+} from '../db/repositories/integrations.js'
 import { getProviderStats } from '../db/repositories/reviewEvents.js'
 
 function requireDb(req, res, next) {

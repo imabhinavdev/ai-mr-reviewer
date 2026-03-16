@@ -29,7 +29,9 @@ export function ForgotPassword() {
     <div className="min-h-screen flex">
       <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] flex-col justify-between bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#0B0F19] p-10 xl:p-14">
         <div>
-          <span className="text-xl font-semibold text-white tracking-tight">Nirik</span>
+          <span className="text-xl font-semibold text-white tracking-tight">
+            Nirik
+          </span>
         </div>
         <div>
           <h1 className="text-3xl xl:text-4xl font-semibold text-white leading-tight max-w-md">
@@ -47,7 +49,9 @@ export function ForgotPassword() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 sm:px-10 lg:px-14 bg-[var(--color-bg)]">
         <div className="w-full max-w-[400px] mx-auto">
           <div className="lg:hidden mb-8">
-            <span className="text-xl font-semibold text-[var(--color-text)]">Nirik</span>
+            <span className="text-xl font-semibold text-[var(--color-text)]">
+              Nirik
+            </span>
           </div>
 
           <Link
@@ -57,7 +61,9 @@ export function ForgotPassword() {
             <ArrowLeft className="size-4" /> Back to sign in
           </Link>
 
-          <h2 className="text-2xl font-semibold text-[var(--color-text)]">Forgot password?</h2>
+          <h2 className="text-2xl font-semibold text-[var(--color-text)]">
+            Forgot password?
+          </h2>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
             Enter your email and we&apos;ll send you a reset link.
           </p>
@@ -66,10 +72,13 @@ export function ForgotPassword() {
             <div className="mt-8 rounded-lg bg-[var(--color-primary-muted)] border border-[var(--color-primary)]/30 px-4 py-4 text-sm text-[var(--color-text)]">
               <p className="font-medium">Check your email</p>
               <p className="mt-1 text-[var(--color-text-secondary)]">
-                Password reset is not configured yet. For now, contact your administrator to reset
-                your password.
+                Password reset is not configured yet. For now, contact your
+                administrator to reset your password.
               </p>
-              <Link to="/login" className="mt-4 inline-block text-[var(--color-primary)] font-medium hover:underline">
+              <Link
+                to="/login"
+                className="mt-4 inline-block text-[var(--color-primary)] font-medium hover:underline"
+              >
                 Back to sign in
               </Link>
             </div>
@@ -92,7 +101,12 @@ export function ForgotPassword() {
                 disabled={loading}
               />
 
-              <Button type="submit" loading={loading} className="w-full" size="lg">
+              <Button
+                type="submit"
+                loading={loading}
+                className="w-full"
+                size="lg"
+              >
                 {loading ? 'Sending...' : 'Send reset link'}
               </Button>
             </form>
@@ -100,7 +114,10 @@ export function ForgotPassword() {
 
           <p className="mt-8 text-center text-sm text-[var(--color-text-secondary)]">
             Remember your password?{' '}
-            <Link to="/login" className="text-[var(--color-primary)] font-medium hover:underline">
+            <Link
+              to="/login"
+              className="text-[var(--color-primary)] font-medium hover:underline"
+            >
               Sign in
             </Link>
           </p>

@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import {
   fetchActivity,
   fetchEvents,
@@ -44,7 +51,11 @@ export function Analytics() {
   const [days, setDays] = useState(30)
   const range = getDateRange(days)
 
-  const { data: activityData, isLoading: activityLoading, error: activityError } = useQuery({
+  const {
+    data: activityData,
+    isLoading: activityLoading,
+    error: activityError,
+  } = useQuery({
     queryKey: ['activity', range.from, range.to],
     queryFn: () =>
       fetchActivity({
@@ -54,7 +65,11 @@ export function Analytics() {
       }),
   })
 
-  const { data: eventsData, isLoading: eventsLoading, error: eventsError } = useQuery({
+  const {
+    data: eventsData,
+    isLoading: eventsLoading,
+    error: eventsError,
+  } = useQuery({
     queryKey: ['events', 10, 0],
     queryFn: () => fetchEvents({ limit: 10, offset: 0 }),
   })
@@ -63,11 +78,19 @@ export function Analytics() {
   const events = eventsData?.events ?? []
   const totalEvents = eventsData?.total ?? 0
 
-  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useQuery({
     queryKey: ['detection-categories'],
     queryFn: fetchDetectionCategories,
   })
-  const { data: prComplexity, isLoading: prComplexityLoading, error: prComplexityError } = useQuery({
+  const {
+    data: prComplexity,
+    isLoading: prComplexityLoading,
+    error: prComplexityError,
+  } = useQuery({
     queryKey: ['pr-complexity'],
     queryFn: fetchPrComplexity,
   })
@@ -80,15 +103,21 @@ export function Analytics() {
     other: 'Other',
   }
   const categoriesObj =
-    categories != null && typeof categories === 'object' && !Array.isArray(categories)
+    categories != null &&
+    typeof categories === 'object' &&
+    !Array.isArray(categories)
       ? categories
       : {}
-  const categoryEntries = Object.entries(categoriesObj).sort((a, b) => b[1] - a[1])
+  const categoryEntries = Object.entries(categoriesObj).sort(
+    (a, b) => b[1] - a[1],
+  )
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text)]">Analytics</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text)]">
+          Analytics
+        </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
           Review activity and recent events
         </p>
@@ -111,12 +140,12 @@ export function Analytics() {
             </select>
           }
         />
-        {activityLoading && (
-          <Skeleton className="h-[300px] w-full" />
-        )}
+        {activityLoading && <Skeleton className="h-[300px] w-full" />}
         {activityError && (
           <p className="py-8 text-center text-sm text-[var(--color-error)]">
-            {activityError instanceof Error ? activityError.message : 'Failed to load activity'}
+            {activityError instanceof Error
+              ? activityError.message
+              : 'Failed to load activity'}
           </p>
         )}
         {!activityLoading && !activityError && (
@@ -130,7 +159,10 @@ export function Analytics() {
             ) : (
               <ChartContainer height={300}>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
@@ -148,7 +180,12 @@ export function Analytics() {
                       }}
                       labelStyle={{ color: 'var(--color-text)' }}
                     />
-                    <Bar dataKey="count" fill="var(--color-primary)" name="Reviews" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="count"
+                      fill="var(--color-primary)"
+                      name="Reviews"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -168,34 +205,41 @@ export function Analytics() {
           message="This section failed to load."
           resetKeys={[categories]}
         >
-          {categoriesLoading && (
-            <Skeleton className="h-32 w-full mx-4 mb-4" />
-          )}
+          {categoriesLoading && <Skeleton className="h-32 w-full mx-4 mb-4" />}
           {categoriesError && (
             <p className="px-4 pb-4 text-sm text-[var(--color-error)]">
-              {categoriesError instanceof Error ? categoriesError.message : 'Failed to load categories'}
+              {categoriesError instanceof Error
+                ? categoriesError.message
+                : 'Failed to load categories'}
             </p>
           )}
-          {!categoriesLoading && !categoriesError && categoryEntries.length === 0 && (
-            <p className="px-4 pb-4 text-sm text-[var(--color-text-secondary)]">
-              No data available yet. Categories will appear after reviews with findings are processed.
-            </p>
-          )}
-          {!categoriesLoading && !categoriesError && categoryEntries.length > 0 && (
-            <ul className="p-4 sm:p-5 pt-0 space-y-2">
-              {categoryEntries.map(([key, count]) => (
-                <li
-                  key={key}
-                  className="flex items-center justify-between gap-4 py-2 border-b border-[var(--color-border)] last:border-0"
-                >
-                  <span className="text-[var(--color-text)]">
-                    {categoryLabels[key] ?? key.replace(/_/g, ' ')}
-                  </span>
-                  <span className="font-semibold text-[var(--color-text)]">{Number(count)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          {!categoriesLoading &&
+            !categoriesError &&
+            categoryEntries.length === 0 && (
+              <p className="px-4 pb-4 text-sm text-[var(--color-text-secondary)]">
+                No data available yet. Categories will appear after reviews with
+                findings are processed.
+              </p>
+            )}
+          {!categoriesLoading &&
+            !categoriesError &&
+            categoryEntries.length > 0 && (
+              <ul className="p-4 sm:p-5 pt-0 space-y-2">
+                {categoryEntries.map(([key, count]) => (
+                  <li
+                    key={key}
+                    className="flex items-center justify-between gap-4 py-2 border-b border-[var(--color-border)] last:border-0"
+                  >
+                    <span className="text-[var(--color-text)]">
+                      {categoryLabels[key] ?? key.replace(/_/g, ' ')}
+                    </span>
+                    <span className="font-semibold text-[var(--color-text)]">
+                      {Number(count)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
         </ErrorBoundary>
       </Card>
 
@@ -215,26 +259,36 @@ export function Analytics() {
           )}
           {prComplexityError && (
             <p className="px-4 pb-4 text-sm text-[var(--color-error)]">
-              {prComplexityError instanceof Error ? prComplexityError.message : 'Failed to load PR complexity'}
+              {prComplexityError instanceof Error
+                ? prComplexityError.message
+                : 'Failed to load PR complexity'}
             </p>
           )}
           {!prComplexityLoading && !prComplexityError && (
             <>
               <dl className="p-4 sm:p-5 grid gap-3 sm:grid-cols-3 text-sm">
                 <div>
-                  <dt className="text-[var(--color-text-muted)]">Average files changed</dt>
+                  <dt className="text-[var(--color-text-muted)]">
+                    Average files changed
+                  </dt>
                   <dd className="mt-0.5 text-lg font-semibold text-[var(--color-text)]">
-                    {prComplexity?.avgFilesChanged != null ? prComplexity.avgFilesChanged.toFixed(1) : '—'}
+                    {prComplexity?.avgFilesChanged != null
+                      ? prComplexity.avgFilesChanged.toFixed(1)
+                      : '—'}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[var(--color-text-muted)]">Average lines added</dt>
+                  <dt className="text-[var(--color-text-muted)]">
+                    Average lines added
+                  </dt>
                   <dd className="mt-0.5 text-lg font-semibold text-[var(--color-text)]">
                     {prComplexity?.avgLinesAdded ?? '—'}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[var(--color-text-muted)]">Largest PR (lines)</dt>
+                  <dt className="text-[var(--color-text-muted)]">
+                    Largest PR (lines)
+                  </dt>
                   <dd className="mt-0.5 text-lg font-semibold text-[var(--color-text)]">
                     {prComplexity?.maxLinesAdded ?? '—'}
                   </dd>
@@ -242,7 +296,8 @@ export function Analytics() {
               </dl>
               {prComplexity?.sampleSize === 0 && (
                 <p className="px-4 pb-4 text-xs text-[var(--color-text-muted)]">
-                  No data available yet. Metrics appear after reviews complete with diff stats.
+                  No data available yet. Metrics appear after reviews complete
+                  with diff stats.
                 </p>
               )}
             </>
@@ -268,7 +323,9 @@ export function Analytics() {
           )}
           {eventsError && (
             <p className="py-6 text-center text-sm text-[var(--color-error)]">
-              {eventsError instanceof Error ? eventsError.message : 'Failed to load events'}
+              {eventsError instanceof Error
+                ? eventsError.message
+                : 'Failed to load events'}
             </p>
           )}
           {!eventsLoading && !eventsError && (
@@ -293,16 +350,31 @@ export function Analytics() {
                     <tbody>
                       {events.map((ev, index) => (
                         <tr key={ev?.id ?? index} className={tableBodyRowClass}>
-                          <td className={tableCellClass}>{ev?.provider ?? '—'}</td>
-                          <td className={tableCellClass}>{ev?.repoName ?? '—'}</td>
-                          <td className={tableCellClass}>{ev?.mrNumber ?? '—'}</td>
                           <td className={tableCellClass}>
-                            <span className={statusColor[ev?.status ?? ''] ?? 'text-[var(--color-text-secondary)]'}>
+                            {ev?.provider ?? '—'}
+                          </td>
+                          <td className={tableCellClass}>
+                            {ev?.repoName ?? '—'}
+                          </td>
+                          <td className={tableCellClass}>
+                            {ev?.mrNumber ?? '—'}
+                          </td>
+                          <td className={tableCellClass}>
+                            <span
+                              className={
+                                statusColor[ev?.status ?? ''] ??
+                                'text-[var(--color-text-secondary)]'
+                              }
+                            >
                               {ev?.status ?? '—'}
                             </span>
                           </td>
-                          <td className={`${tableCellClass} text-[var(--color-text-secondary)]`}>
-                            {ev?.createdAt ? new Date(ev.createdAt).toLocaleString() : '—'}
+                          <td
+                            className={`${tableCellClass} text-[var(--color-text-secondary)]`}
+                          >
+                            {ev?.createdAt
+                              ? new Date(ev.createdAt).toLocaleString()
+                              : '—'}
                           </td>
                         </tr>
                       ))}
