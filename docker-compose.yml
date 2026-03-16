@@ -42,7 +42,7 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - redis_data:/data
+      - ./data/redis:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -60,7 +60,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-nirik}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
       interval: 5s
@@ -76,6 +76,3 @@ networks:
   nginx-default:
     external: true
 
-volumes:
-  redis_data:
-  postgres_data:
