@@ -1,16 +1,12 @@
 services:
-  traefik:
-    container_name: ai-mr-reviewer-traefik
-    image: traefik:v3.5
-    command:
-      - --api.dashboard=false
-      - --providers.file.directory=/etc/traefik/dynamic
-      - --providers.file.watch=true
-      - --entrypoints.web.address=:8080
-    volumes:
-      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+  nginx:
+    container_name: ai-mr-reviewer-nginx
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - '8080:80'
     restart: unless-stopped
-    env_file: .env
     environment:
       VIRTUAL_HOST: ${VIRTUAL_HOST:-}
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
@@ -18,15 +14,13 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
     networks:
       - nirik_bridge
-      - nginx-default
+      - nginx_default
     depends_on:
       - app
 
   app:
     container_name: ai-mr-reviewer-app
     build: .
-    ports:
-      - '3000:3000'
     env_file: .env
     environment:
       REDIS_URL: redis://ai-mr-reviewer-redis:6379
@@ -77,7 +71,7 @@ services:
 networks:
   nirik_bridge:
     driver: bridge
-  nginx-default:
+  nginx_default:
     external: true
 
 volumes:

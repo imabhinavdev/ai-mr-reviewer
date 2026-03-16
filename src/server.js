@@ -1,12 +1,6 @@
 import express from 'express'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import cookieParser from 'cookie-parser'
 import { env } from './config/env.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const projectRoot = path.resolve(__dirname, '..')
-const dashboardDist = path.join(projectRoot, 'dashboard', 'dist')
 import { httpLogger } from './config/httpLogger.js'
 import { logger } from './config/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
@@ -62,34 +56,6 @@ app.get(
       .json({ success: true, message: 'Hello World', requestId: req.id })
   }),
 )
-
-// Dashboard SPA: serve static assets and fallback to index.html when built
-try {
-  const { existsSync } = await import('node:fs')
-  if (existsSync(path.join(dashboardDist, 'index.html'))) {
-    // Dashboard at "/" (base), and keep "/dashboard" working via redirect
-    app.use(express.static(dashboardDist))
-    app.get('/dashboard', (req, res, next) => {
-      if (req.method !== 'GET') return next()
-      res.redirect(302, '/')
-    })
-    app.get('/dashboard/*', (req, res, next) => {
-      if (req.method !== 'GET') return next()
-      res.redirect(302, '/')
-    })
-    app.get('*', (req, res, next) => {
-      if (
-        req.method !== 'GET' ||
-        req.path.startsWith('/api') ||
-        req.path === '/metrics'
-      )
-        return next()
-      return res.sendFile(path.join(dashboardDist, 'index.html'))
-    })
-  }
-} catch {
-  // ignore if fs check fails
-}
 
 // Global Middlewares for error handling
 app.use(notFoundHandler)
