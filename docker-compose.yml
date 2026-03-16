@@ -2,14 +2,17 @@ services:
   app:
     container_name: ai-mr-reviewer-app
     build: .
+    # Expose for local dev; when using nginx-proxy in production, comment out to force traffic through proxy
     ports:
       - '3000:3000'
     env_file: .env
     environment:
-      # In Docker, the app container must use the Redis service name, not localhost
       REDIS_URL: redis://ai-mr-reviewer-redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nirik}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nirik}
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     restart: unless-stopped
 
@@ -27,5 +30,22 @@ services:
       retries: 5
     restart: unless-stopped
 
+  postgres:
+    container_name: ai-mr-reviewer-postgres
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nirik}
+      POSTGRES_DB: ${POSTGRES_DB:-nirik}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   redis_data:
+  postgres_data:
