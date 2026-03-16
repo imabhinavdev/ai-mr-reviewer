@@ -14,7 +14,7 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
     networks:
       - nirik_bridge
-      - nginx_default
+      - nginx-default
     depends_on:
       - app
 
@@ -71,7 +71,7 @@ services:
 networks:
   nirik_bridge:
     driver: bridge
-  nginx_default:
+  nginx-default:
     external: true
 
 volumes:
