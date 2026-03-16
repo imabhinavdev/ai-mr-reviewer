@@ -1,5 +1,12 @@
 import express from 'express'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import cookieParser from 'cookie-parser'
 import { env } from './config/env.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(__dirname, '..')
+const dashboardDist = path.join(projectRoot, 'dashboard', 'dist')
 import { httpLogger } from './config/httpLogger.js'
 import { logger } from './config/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
@@ -12,6 +19,8 @@ import {
   closeReviewQueue,
 } from './services/queue/reviewQueue.js'
 import { ensureRedisConnection } from './config/redis.js'
+import { isDbConfigured, closeDb } from './config/db.js'
+import { runMigrations } from './db/migrate.js'
 import { register, metricsMiddleware } from './metrics.js'
 
 const app = express()
@@ -28,6 +37,7 @@ app.use(
   }),
 )
 app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
 app.use(httpLogger)
 app.use(metricsMiddleware)
 
@@ -38,7 +48,7 @@ app.get('/metrics', verifyMetricsToken, async (_req, res) => {
 })
 app.use('/api/v1', router)
 app.get(
-  '/',
+  '/health',
   asyncHandler(async (req, res) => {
     req.log.info({ requestId: req.id }, 'Health route hit')
     res
@@ -46,6 +56,20 @@ app.get(
       .json({ success: true, message: 'Hello World', requestId: req.id })
   }),
 )
+
+// Dashboard SPA: serve static assets and fallback to index.html when built
+try {
+  const { existsSync } = await import('node:fs')
+  if (existsSync(path.join(dashboardDist, 'index.html'))) {
+    app.use(express.static(dashboardDist))
+    app.get('*', (req, res, next) => {
+      if (req.method !== 'GET' || req.path.startsWith('/api') || req.path === '/metrics') return next()
+      res.sendFile(path.join(dashboardDist, 'index.html'))
+    })
+  }
+} catch {
+  // ignore if fs check fails
+}
 
 // Global Middlewares for error handling
 app.use(notFoundHandler)
@@ -69,6 +93,15 @@ async function start() {
     process.exit(1)
   }
 
+  if (isDbConfigured()) {
+    try {
+      await runMigrations()
+      logger.info('Database migrations completed')
+    } catch (err) {
+      logger.warn({ err }, 'Database migration failed; dashboard/analytics may be unavailable')
+    }
+  }
+
   server = app.listen(env.PORT, () => {
     const baseUrl = getBaseUrl()
     const webhookPath = '/api/v1/webhooks/review-pr'
@@ -81,10 +114,10 @@ async function start() {
     logger.info({ webhookUrl }, `Webhook URL (GitHub & GitLab): ${webhookUrl}`)
     logger.info(
       {
-        health: `${baseUrl}/`,
+        health: `${baseUrl}/health`,
         metrics: `${baseUrl}/metrics`,
       },
-      'Other endpoints: GET / (health), GET /metrics (Prometheus)',
+      'Other endpoints: GET /health, GET /metrics (Prometheus)',
     )
 
     startReviewWorker()
@@ -100,6 +133,9 @@ const shutdown = async (signal) => {
   logger.warn({ signal }, 'Shutdown signal received')
 
   await closeReviewQueue()
+  if (isDbConfigured()) {
+    await closeDb()
+  }
   if (!server) {
     process.exit(0)
     return

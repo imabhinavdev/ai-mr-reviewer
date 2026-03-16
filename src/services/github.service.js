@@ -71,6 +71,26 @@ export async function listPullRequestReviewComments(repoFullName, pullNumber) {
 }
 
 /**
+ * Get repository info including default branch.
+ * @param {string} repoFullName - e.g. "owner/repo"
+ * @returns {Promise<{ default_branch: string }>}
+ */
+export async function getRepository(repoFullName) {
+  const [owner, repo] = repoFullName.split('/')
+  if (!owner || !repo)
+    throw new Error('Invalid repo full name: ' + repoFullName)
+  const res = await fetch(`${GITHUB_API}/repos/${owner}/${repo}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GitHub get repo failed: ${res.status} ${text}`)
+  }
+  const data = await res.json()
+  return { default_branch: data.default_branch || 'main' }
+}
+
+/**
  * Get file contents from the repository at a given ref (branch, tag, or commit SHA).
  * Returns null if the file is not found (404).
  * @param {string} repoFullName - e.g. "owner/repo"

@@ -6,7 +6,7 @@ import { generateContentStructured as openaiStructured } from '../openai.service
  * Select AI provider from env: Gemini if GEMINI_API_KEY set, else OpenAI if OPENAI_API_KEY set.
  * @returns {'gemini'|'openai'}
  */
-function getAIProvider() {
+export function getAIProvider() {
   if (env.GEMINI_API_KEY) return 'gemini'
   if (env.OPENAI_API_KEY) return 'openai'
   throw new Error('Set GEMINI_API_KEY or OPENAI_API_KEY in the environment')

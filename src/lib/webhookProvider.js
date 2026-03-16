@@ -81,6 +81,31 @@ export function getReviewJobId(provider, event) {
 }
 
 /**
+ * Extract repo and author for analytics (review_events).
+ * @param {'github'|'gitlab'} provider
+ * @param {object} event
+ * @returns {{ repoId: string, repoName: string, authorUsername: string | null }}
+ */
+export function getReviewEventPayload(provider, event) {
+  if (provider === 'github') {
+    return {
+      repoId: event?.repository?.full_name ?? '',
+      repoName: event?.repository?.full_name ?? '',
+      authorUsername: event?.pull_request?.user?.login ?? null,
+    }
+  }
+  if (provider === 'gitlab') {
+    const projectId = event?.project?.id ?? event?.project_id
+    return {
+      repoId: projectId != null ? String(projectId) : '',
+      repoName: event?.project?.path_with_namespace ?? String(projectId ?? ''),
+      authorUsername: event?.user?.username ?? null,
+    }
+  }
+  return { repoId: '', repoName: '', authorUsername: null }
+}
+
+/**
  * Detect provider from event shape (for use in job).
  * @param {object} event
  * @returns {'github'|'gitlab'|null}
