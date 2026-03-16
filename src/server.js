@@ -47,7 +47,11 @@ app.get('/metrics', verifyMetricsToken, async (_req, res) => {
   res.send(await register.metrics())
 })
 app.use('/api/v1', router)
-// Back-compat + simpler reverse-proxy routing (domain.com/api/*)
+// Reverse-proxy-friendly alias (domain.com/api/* -> /api/v1/*)
+app.use('/api', (req, _res, next) => {
+  req.url = `/v1${req.url}`
+  next()
+})
 app.use('/api', router)
 app.get(
   '/health',
@@ -63,12 +67,16 @@ app.get(
 try {
   const { existsSync } = await import('node:fs')
   if (existsSync(path.join(dashboardDist, 'index.html'))) {
-    // Host dashboard under /dashboard (recommended for reverse proxies)
-    app.get('/', (req, res, next) => {
+    // Dashboard at "/" (base), and keep "/dashboard" working via redirect
+    app.use(express.static(dashboardDist))
+    app.get('/dashboard', (req, res, next) => {
       if (req.method !== 'GET') return next()
-      res.redirect(302, '/dashboard')
+      res.redirect(302, '/')
     })
-    app.use('/dashboard', express.static(dashboardDist))
+    app.get('/dashboard/*', (req, res, next) => {
+      if (req.method !== 'GET') return next()
+      res.redirect(302, '/')
+    })
     app.get('*', (req, res, next) => {
       if (
         req.method !== 'GET' ||
@@ -76,10 +84,7 @@ try {
         req.path === '/metrics'
       )
         return next()
-      if (req.path === '/dashboard' || req.path.startsWith('/dashboard/')) {
-        return res.sendFile(path.join(dashboardDist, 'index.html'))
-      }
-      return next()
+      return res.sendFile(path.join(dashboardDist, 'index.html'))
     })
   }
 } catch {

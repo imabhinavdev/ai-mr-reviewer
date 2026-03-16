@@ -18,7 +18,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <BrowserRouter basename="/dashboard">
+          <BrowserRouter>
             <AppRouter />
           </BrowserRouter>
         </AuthProvider>
