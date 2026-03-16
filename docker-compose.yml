@@ -20,7 +20,6 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
     networks:
       - nirik_bridge
-      - proxy
 
   app:
     container_name: ai-mr-reviewer-app
@@ -85,8 +84,6 @@ services:
 networks:
   nirik_bridge:
     driver: bridge
-  proxy:
-    external: true
 
 volumes:
   redis_data:
