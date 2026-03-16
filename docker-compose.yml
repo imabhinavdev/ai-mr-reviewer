@@ -33,7 +33,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-nirik}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nirik}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.ai-mr-reviewer.rule=Host(`${TRAEFIK_HOST}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`) || Path(`/`))
+      # Path-only: nginx-proxy already forwards only this domain to Traefik
+      - traefik.http.routers.ai-mr-reviewer.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`) || Path(`/`)
       - traefik.http.routers.ai-mr-reviewer.entrypoints=web
       - traefik.http.services.ai-mr-reviewer.loadbalancer.server.port=3000
     depends_on:
