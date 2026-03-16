@@ -1,4 +1,24 @@
 services:
+  traefik:
+    container_name: ai-mr-reviewer-traefik
+    image: traefik:v3.5
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # If you're using nginx-proxy on the server, point it at this Traefik container.
+      # You'll set these in the server's env; they are optional for local dev.
+      VIRTUAL_HOST: ${VIRTUAL_HOST:-}
+      VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
+
   app:
     container_name: ai-mr-reviewer-app
     build: .
@@ -9,7 +29,14 @@ services:
     environment:
       REDIS_URL: redis://ai-mr-reviewer-redis:6379
       DATABASE_URL: postgresql://${POSTGRES_USER:-nirik}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nirik}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ai-mr-reviewer.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`) || Path(`/`)
+      - traefik.http.routers.ai-mr-reviewer.entrypoints=web
+      - traefik.http.services.ai-mr-reviewer.loadbalancer.server.port=3000
     depends_on:
+      traefik:
+        condition: service_started
       redis:
         condition: service_healthy
       postgres:
